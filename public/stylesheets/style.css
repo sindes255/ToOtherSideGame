@@ -1,0 +1,205 @@
+body, html {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.turnContainer {
+  width: 100%;
+  position:fixed;
+  top: 0;
+  height: 48px;
+  text-align: center
+}
+.turnContainer span {
+  border: 2px solid #303030;
+  background: rgba(0,0,0, 0.7);
+  font-size: 24px;
+  padding: 8px 32px;
+  border-radius: 0 0 40px 40px;
+  color: #eeeeee
+}
+
+.newTurnContainer {
+  width: 100%;
+  position: fixed;
+  display: none;
+  top: 50%;
+  height: 170px;
+  margin-top: -85px;
+  text-align: center
+}
+.newTurnContainer span {
+  border-top: 2px solid #303030;
+  border-bottom: 2px solid #303030;
+  background: rgba(0,0,0, 0.7);
+  font-size: 32px;
+  padding: 64px 32px;
+  color: #eeeeee;
+  width:100%;
+  display: block
+
+
+}
+
+
+
+.menuIcon {
+  background: url( /images/sprite.png );
+  position: absolute;
+  margin-top: 20px;
+  margin-left: 20px;
+  width: 62px;
+  top: 0;
+  height: 62px;
+  z-index: 10;
+  background-position: 64px -262px;
+  background-size: 555%;
+  cursor: pointer
+}
+
+.playerIconContainer{
+  position: absolute;
+  margin-top: 20px;
+  width: 120px;
+  top: 0;
+  right: 20px;
+  height: 120px;
+}
+
+.playerIcon {
+  margin: 0 auto;
+  width: 35px;
+  height: 36px;
+  z-index: 10;
+  cursor: pointer
+}
+
+.playerIcon__on {
+  background: url(/images/sprite.png) 100px -444px / 555%;
+}
+
+.playerIcon__off {
+  background: url(/images/sprite.png) 100px -406px / 555%;
+}
+
+.playerIcon__trigger_on {
+  background: url(/images/sprite.png) 100px -479px / 555%;
+}
+
+.playerIcon__trigger_off {
+  background: url(/images/sprite.png) 35px -444px / 555%;
+}
+
+.sl{
+  margin-left: 10px;
+}
+
+.slider {
+  border: 2px solid #303030;
+  background: rgba(0,0,0, 0.7);
+  font-size: 24px;
+  border-radius: 5px;
+}
+.knob {
+  position: relative;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  background: rgba(0,0,0, 0.7);
+  font-size: 24px;
+  border-radius: 20px;
+  margin-top: -5px;
+}
+
+.btn{
+  border: 5px outset rgb(48, 48, 48);
+  padding: 16px 32px;
+  font-size: 18px;
+  margin-bottom: 20px;
+  cursor: pointer
+
+}
+
+.btn:focus {
+  outline: -webkit-focus-ring-color none 5px;
+}
+.btn:hover {
+  opacity: 0.9;
+}
+
+.close-btn {
+  background: url(/images/sprite.png);
+  position: absolute;
+  margin: 50px 15px 15px 20px;
+  width: 44px;
+  top: 0;
+  right:20px;
+  height: 40px;
+  background-position: 81px 0;
+  background-size: 555%;
+  cursor: pointer
+}
+
+.retry-btn {
+  background: url(/images/darkwood.jpg);
+  color: #999;
+  float: right
+}
+
+
+.location-btn{
+  background: url(/images/lightwood.jpg);
+  border: 5px outset rgb(48, 48, 48);
+
+}
+
+.modalLayout{
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index:0;
+  height: 100%;
+  display: flex;
+  cursor: default
+
+}
+
+.modalWrapper{
+  width: 100%;
+  position: fixed;
+  top: 0;
+  height: 100%;
+  display: flex
+}
+.modalContainer{
+  width: 25%;
+  margin: auto;
+  position: relative;
+  min-height: 400px;
+  height : 100%;
+  z-index: 10;
+  border: 2px solid #303030;
+  background: rgba(0,0,0, 0.7);
+  padding: 8px 16px
+}
+.modalContent{
+  min-height: 270px;
+  padding-bottom: 20px;
+  font-size: 24px;
+  z-index: 10;
+  color: #eeeeee;
+  margin-top: 50%
+
+
+}

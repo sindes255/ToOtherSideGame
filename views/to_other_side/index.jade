@@ -1,0 +1,17 @@
+extends ../layout
+
+block content
+    script(src='/js/to_other_side/game.js')
+    script(src='/js/to_other_side/gui.js')
+
+    script(src='/js/to_other_side/main.js')
+    script(src='/js/to_other_side/events.js')
+
+
+    video(autoplay='', id='player', name='media', style='display: none', data-volume='0.3')
+        source(src='http://174.36.206.197:8000/;stream.nsv', type='audio/mpeg')
+    div(id='WebGL-output')
+
+    div#jade-templates(style='visibility:hidden;')
+        include tpl/gui.jade
+        include  tpl/menu.jade
