@@ -6,7 +6,7 @@ Made just for fun. [Play it here!](http://frontendjs.info/to_other_side/)
 
 ### Contributions
 
-### The issues section is for bug reports and feature requests only. If you need help, please use [stackoverflow](http://stackoverflow.com/questions/tagged/ToOtherSideGame).
+The issues section is for bug reports and feature requests only. If you need help, please use [stackoverflow](http://stackoverflow.com/questions/tagged/ToOtherSideGame).
 
 
 Before reporting a bug
@@ -41,7 +41,7 @@ How to report a bug
 ## License
 To Other Side game is licensed under the [MIT license.](https://github.com/sindes255/ToOtherSideGame/blob/master/LICENSE.txt)
 
-
+##[Play it here!](http://frontendjs.info/to_other_side/)
 ========
 
 
