@@ -27,15 +27,15 @@ How to report a bug
 ### Screenshots
 
 <p align="center">
-  <img src="http://frontendjs.info/images/Screenshot1.jpg" alt="Screenshot1"/>
+  <img src="http://frontendjs.info/images/bg/Screenshot1.jpg" alt="Screenshot1"/>
 </p>
 
 <p align="center">
-  <img src="http://frontendjs.info/images/Screenshot2.jpg" alt="Screenshot2"/>
+  <img src="http://frontendjs.info/images/bg/Screenshot2.jpg" alt="Screenshot2"/>
 </p>
 
 <p align="center">
-  <img src="http://frontendjs.info/images/Screenshot3.jpg" alt="Screenshot3"/>
+  <img src="http://frontendjs.info/images/bg/Screenshot3.jpg" alt="Screenshot3"/>
 </p>
 
 ## License
