@@ -1,7 +1,7 @@
-.DS_Store
+*.DS_Store
 *.log
-.idea
-/.idea
+*.idea
+*.db
 bin
 node_modules
 routes
@@ -13,4 +13,8 @@ views/to_other_side4
 views/error.jade
 views/index.jade
 views/layout.jade
+public/js/1
+public/js/2
+public/js/3
+public/js/4
 
