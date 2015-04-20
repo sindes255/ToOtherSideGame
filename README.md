@@ -1,4 +1,6 @@
-# <img src="http://frontendjs.info/images/icon128.png" style="margin-bottom: -10px;" width="50" alt="Icon"/> To Other Side game
+<img src="http://frontendjs.info/images/iconGit.png" alt="Icon"/>
+
+##To Other Side game
 This is a game where the goal is to reach the opposite end of the table and prevent the enemy to do it.
 
 Made just for fun. [Play it here!](http://frontendjs.info/to_other_side/)
