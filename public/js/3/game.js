@@ -116,12 +116,16 @@ function slider(elemId, sliderWidth, range1, range2, step) {
 function showModal(obj){
     game.pause = 1;
     game.removeEventListeners();
-    var retry = '',location = '', close ='';
+    var retry = '',location = '', close ='', submit = '';
         if(obj.retry){
         retry = '<input type="button" class="retry-btn btn" id="retry-btn" value="Retry game?">'
     };
     if(obj.close){
         close = '<span class="close-btn" id="close-btn" style="margin: 8px 0 16px 0;"></span>'
+    }
+
+    if(obj.submit){
+        submit = '<input type="button" class="location-btn btn" id="location-btn" value="'+ obj.submit.text +'">'
     };
     if(obj.location){
         location = '<input type="button" class="location-btn btn" id="location-btn" value="'+ obj.location.text +'">'
@@ -142,7 +146,7 @@ function showModal(obj){
         }
     }
 
-    var modalWrapperTmp = '<div class="modalWrapper" id="modalWrapper" style=""><div class="modalLayout" id="modalLayout"></div><div  class="modalContainer" id="modalContainer">' + close + '<div class="modalContent"><h1>' + obj.header + '</h1>' + obj.text + '</div>' + location  + retry + '</div></div>';
+    var modalWrapperTmp = '<div class="modalWrapper" id="modalWrapper" style=""><div class="modalLayout" id="modalLayout"></div><div  class="modalContainer" id="modalContainer">' + close + '<div class="modalContent"><h1>' + obj.header + '</h1>' + obj.text + '</div>' + location  + retry + submit '</div></div>';
 
     $('body').append(modalWrapperTmp);
     var modalWrapper = $('#modalWrapper');
@@ -170,6 +174,11 @@ function showModal(obj){
         closeEl.on('click', function(){
             hideModal();
         });
+    };
+
+    if(obj.submit){
+        var submitEl = $('#submit-btn');
+        submitEl.on('click', obj.submit.callback);
     };
 
 

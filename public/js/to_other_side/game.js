@@ -1,3 +1,4 @@
+/*================ Game staic fields ================*/
 function Game(){
     this.stats = {
         currentPlayer: 'white',
@@ -21,9 +22,9 @@ function Game(){
                 camera: {x:120, y:100,z:-180}
             }
         },
-
         gameOver: 0
     };
+
     this.mouse ={
         x:0,
         y:0
@@ -47,7 +48,6 @@ function Game(){
             y: 15,
             z: 34
         },
-
         player:{
             x: 15,
             y: 15,
@@ -87,7 +87,6 @@ function Game(){
             targetPosition:{
                 x:0,y:0,z:0
             },
-
             animationArray:[]
         },
         isTurnBlocked: -1
@@ -103,27 +102,23 @@ function Game(){
 
     this.player = {
         play: 1
-    }
-
+    };
 
     this.targetList = [];
 }
 
-Game.prototype.addObject = function (obj, attr, addObj){
+/*================ Add object to scene ================*/
+Game.prototype.addObject = function (obj, attr, addObj){//obj - adding object; attr -name of object, that adding to obj; addObj - object, that adding to obj
     obj[attr] = addObj;
     game.scene.add(obj);
     game.targetList.push(obj);
 };
 
-Game.prototype.changeCursor =function(type){
-    if(!type) type = 'pointer';
-    document.getElementsByTagName('body')[0].style.cursor = type;
-};
-
-Game.prototype.addModelToScene = function( geometry, materials ){
+/*================ Add object to game ================*/
+Game.prototype.addModelToScene = function( geometry, materials ){//geometry - THREE geometry; materials - THREE materials
     var material = new THREE.MeshFaceMaterial( materials );
     var player = new THREE.Mesh( geometry, material );
-
+    /*=======add models of player from threse color=======*/
     if(materials[0].map.sourceFile.indexOf('light') != -1){
         player.position.z = (game.planeGeometry.parameters.height+107) / 2;
         player.position.x = 0;
@@ -133,39 +128,40 @@ Game.prototype.addModelToScene = function( geometry, materials ){
         player.position.x = 0;
         player.name = 'secondPlayerModel';
     }
+
     player.castShadow = true;
     player.scale.set(7,7,7);
     player.position.y = 4;
 
-
-
     game.addObject(player, 'params', {x: 15, y: 15, z: 15} );
 };
 
-Game.prototype.addTableToScene = function( geometry, materials ){
+/*================ Add table to game ================*/
+Game.prototype.addTableToScene = function( geometry, materials ){//geometry - THREE geometry; materials - THREE materials
     var material = new THREE.MeshFaceMaterial( materials );
     var table = new THREE.Mesh( geometry, material );
-
 
     table.position.z = 0;
     table.position.x = -40;
     table.name = 'table';
-
     table.scale.set(210,250,250);
     table.position.y = -110;
-
-
     table.receiveShadow = true;
+
     game.scene.add(table);
 };
 
-Game.prototype.addPlateBorderToScene = function( geometry, materials ){
-    var arr = [{z:0, x:-85, rotation: 0},{z:0, x:85, rotation: Math.PI},{z:-85, x:0, rotation: -0.5 *  Math.PI},{z:85, x:0, rotation: 0.5 *  Math.PI}];
+/*================ Add plate to game ================*/
+Game.prototype.addPlateBorderToScene = function( geometry, materials ){//geometry - THREE geometry; materials - THREE materials
+    var arr,
+        material,
+        border;
+
+    arr = [{z:0, x:-85, rotation: 0},{z:0, x:85, rotation: Math.PI},{z:-85, x:0, rotation: -0.5 *  Math.PI},{z:85, x:0, rotation: 0.5 *  Math.PI}];
 
     for(var i = 0; i < arr.length; i++) {
-        var material = new THREE.MeshFaceMaterial(materials);
-        var border = new THREE.Mesh(geometry, material);
-
+        material = new THREE.MeshFaceMaterial(materials);
+        border = new THREE.Mesh(geometry, material);
 
         border.position.z = arr[i].z;
         border.position.x = arr[i].x;
@@ -173,38 +169,44 @@ Game.prototype.addPlateBorderToScene = function( geometry, materials ){
         border.rotation.y = arr[i].rotation;
         border.scale.set(44, 60, 94);
         border.position.y = 1.5;
-
-
         border.castShadow = true;
+
         game.scene.add(border);
     }
 };
 
-Game.prototype.getObjectByCursorPosition = function (event){
-    var projector = new THREE.Projector();
+/*================ Get object by cursor position (x,y) ================*/
+Game.prototype.getObjectByCursorPosition = function (event){//mouse event object
+    var projector,
+        vector,
+        ray,
+        intersects;
+
+    projector = new THREE.Projector();
 
     if(event.type != "wheel") {
         game.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
         game.mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
     }
-    var vector = new THREE.Vector3( game.mouse.x, game.mouse.y, 1 );
+    vector = new THREE.Vector3( game.mouse.x, game.mouse.y, 1 );
 
     vector.unproject(game.camera);
 
-    //projector.unprojectVector( vector, this.camera );
-    var ray = new THREE.Raycaster( game.camera.position, vector.sub( game.camera.position ).normalize() );
-    var intersects = ray.intersectObjects( game.targetList );
-
+    ray = new THREE.Raycaster( game.camera.position, vector.sub( game.camera.position ).normalize() );
+    intersects = ray.intersectObjects( game.targetList );
+    //return array of THREE object, that have current coords(cross the vertual vector from camera)
     return intersects
 };
 
-Game.prototype.getObjectByPosition = function (x,y,z){
+/*================ Get object by input position (x,y,z) ================*/
+Game.prototype.getObjectByPosition = function (x,y,z){//x,y,z - coords of position on THREE scene
+    var intersects =[],
+        curEl;
 
-    var intersects =[];
     for(var i = 0; i < game.targetList.length; i++){
 
-        var curEl =game.targetList[i];
-
+        curEl =game.targetList[i];
+        /*=======If position + width in x/y/z coords - return true=======*/
         if(x < curEl.position.x + curEl.params.x&&
             x > curEl.position.x - curEl.params.x&&
             z < curEl.position.z + curEl.params.z&&
@@ -214,13 +216,16 @@ Game.prototype.getObjectByPosition = function (x,y,z){
             intersects.push(game.scene.getObjectByName(curEl.name))
         }
     }
+    //return array of THREE object, that have current coords(cross the vertual vector from camera)
     return intersects
 };
 
+/*================ Update some field after and turn ================*/
 Game.prototype.swichTurn = function (){
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.x = game.camera.position.x;
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.y = game.camera.position.y;
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.z = game.camera.position.z;
+    /*=======Change statistic info in game object=======*/
     if(game.stats.currentPlayer == 'white'){
         game.stats.currentPlayer = 'black';
         game.stats.currentPlates = 'secondPayerPlate';
@@ -234,19 +239,35 @@ Game.prototype.swichTurn = function (){
 
     }
 
-
-
     gui.update();
-
 };
 
 Game.prototype.init = function(){
+    var woodenTextureLight,
+        planeMaterial,
+        woodenTextureUltraLight,
+        woodenUltraLightMaterial,
+        woodenTextureUltraDark,
+        woodenUltraDarkMaterial,
+        plane,
+        woodenTextureDark,
+        startRepeat,
+        cubeMaterial,
+        cube,
+        firstPayerPlate,
+        secondPayerPlate,
+        textureLoader,
+        progressContainer,
+        ambientLight,
+        PointLight,
+        spotLight,
+        jsonLoader;
 
+    /*================ Init scene, renderer and camera ================*/
     this.scene = new THREE.Scene();
 
     // create a window.camera, which defines where we're looking at.
     this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 
     this.camera.position.x = 120;
     this.camera.position.y = 100;
@@ -258,26 +279,24 @@ Game.prototype.init = function(){
     this.renderer.setClearColor(0xEEEEEE, 1.0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMapEnabled = true;
+    jsonLoader = new THREE.JSONLoader();//add module for loading models
 
+    THREEx.WindowResize(this.renderer, this.camera);
 
-
-    // create the ground plane
+    /*================ Init table ================*/
     this.planeGeometry = new THREE.BoxGeometry(167, 167, 5);
-    var woodenTextureLight = THREE.ImageUtils.loadTexture( '/images/wooden_2.jpg' );
-    //woodenTextureLight.wrapS = woodenTextureLight.wrapT = THREE.RepeatWrapping;
-    //woodenTextureLight.repeat.set( 4, 4 );
-    var planeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureLight, shininess: 50 } );
+    /*=======Add table objects=======*/
+    woodenTextureLight = THREE.ImageUtils.loadTexture( '/images/wooden_2.jpg' );
 
-    var woodenTextureUltraLight = THREE.ImageUtils.loadTexture( '/images/lightwood.jpg' );
-    var woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 50 } );
+    planeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureLight, shininess: 50 } );
 
-    var woodenTextureUltraDark = THREE.ImageUtils.loadTexture( '/images/darkwood.jpg' );
-    var woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 50 } );
+    woodenTextureUltraLight = THREE.ImageUtils.loadTexture( '/images/lightwood.jpg' );
+    woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 50 } );
 
+    woodenTextureUltraDark = THREE.ImageUtils.loadTexture( '/images/darkwood.jpg' );
+    woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 50 } );
 
-
-    var plane = new THREE.Mesh(this.planeGeometry, planeMaterial);
-
+    plane = new THREE.Mesh(this.planeGeometry, planeMaterial);
 
     // rotate and position the plane
     plane.rotation.x = -0.5 * Math.PI;
@@ -285,22 +304,27 @@ Game.prototype.init = function(){
     plane.position.y = 0;
     plane.position.z = 0;
     plane.receiveShadow = true;
-    // add the plane to the scene
+
     plane.name = 'plane';
+
+    // add the plane to the scene
     this.addObject(plane, 'params', this.geometries.plane);
+    /*=======Add another tabel objects from modaels=======*/
+    jsonLoader.load( "/js/to_other_side/models/tableModel.js", this.addTableToScene);
+    jsonLoader.load( "/js/to_other_side/models/plateBorderModel.js", this.addPlateBorderToScene);
 
     this.cubeGeometry = new THREE.BoxGeometry(this.geometries.cube.x, this.geometries.cube.y ,this.geometries.cube.z);
-    var woodenTextureDark = THREE.ImageUtils.loadTexture( '/images/wooden_1.jpg' );
+    woodenTextureDark = THREE.ImageUtils.loadTexture( '/images/wooden_1.jpg' );
     woodenTextureDark.wrapS = woodenTextureDark.wrapT = THREE.RepeatWrapping;
-    var startRepeat = 0.15;
-
+    startRepeat = 0.15;
+    /*=======Add game small cubs to table=======*/
     for (var j = 0; j < (this.planeGeometry.parameters.height) / 19; j++) {
         for (var i = 0; i < (this.planeGeometry.parameters.width) / 19; i++) {
             startRepeat = Math.round((startRepeat+0.01)*100)/100;
             woodenTextureDark.repeat.set( startRepeat, startRepeat);
 
-            var cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90 } );
-            var cube = new THREE.Mesh(this.cubeGeometry, cubeMaterial);
+            cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90 } );
+            cube = new THREE.Mesh(this.cubeGeometry, cubeMaterial);
             cube.rotation.y = (0.5* getRandomInt(1,4)) * Math.PI;
             cube.position.z = -((this.planeGeometry.parameters.height-11) / 2) + 2 + (j * 19);
             cube.position.x = -((this.planeGeometry.parameters.width-11) / 2) + 2 + (i * 19);
@@ -309,15 +333,14 @@ Game.prototype.init = function(){
             cube.castShadow = true;
             cube.name = 'cube[' + (j*2) + '][' + (i*2) + ']';
             cube.coords = {x: i*2, y: j*2};
+
             this.addObject(cube, 'params', this.geometries.cube);
         }
-
     }
-
+    /*=======Set matrix of table=======*/
     for (var k = 0; k < 17; k++) {
         this.stats.players.whitePlayer.fieldArray.push([]);
         this.stats.players.blackPlayer.fieldArray.push([]);
-
 
         for (var l = 0; l < 17; l++) {
             if(k % 2 == 1 && k != 17  ) {
@@ -357,13 +380,13 @@ Game.prototype.init = function(){
         }
     }
 
+    /*================ Init plates ================*/
     this.PayerPlateGeometry = new THREE.BoxGeometry(this.geometries.plates.x, this.geometries.plates.y, this.geometries.plates.z);
 
     for(var i = 0 ; i < 10; i++){
 
         //First Player
-
-        var firstPayerPlate = new THREE.Mesh(this.PayerPlateGeometry, woodenUltraLightMaterial);
+        firstPayerPlate = new THREE.Mesh(this.PayerPlateGeometry, woodenUltraLightMaterial);
         firstPayerPlate.position.z = ((this.planeGeometry.parameters.height+45) / 2) ;
         firstPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         firstPayerPlate.position.y = 15;
@@ -377,12 +400,8 @@ Game.prototype.init = function(){
         // add the plate to the scene
         this.addObject(firstPayerPlate, 'params', this.geometries.plates);
 
-
-
         //Second Player
-
-        var secondPayerPlate = new THREE.Mesh(this.PayerPlateGeometry, woodenUltraDarkMaterial);
-        //cube.position.z = -((this.planeGeometry.parameters.height-11) / 2) + 2 + (i * 19);
+        secondPayerPlate = new THREE.Mesh(this.PayerPlateGeometry, woodenUltraDarkMaterial);
         secondPayerPlate.position.z = -((this.planeGeometry.parameters.height+45) / 2) ;
         secondPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         secondPayerPlate.position.y = 15;
@@ -395,87 +414,134 @@ Game.prototype.init = function(){
         secondPayerPlate.tmpRotation = game.dragObj.plateRotate;
         // add the plate to the scene
         this.addObject(secondPayerPlate, 'params', this.geometries.plates);
-
-
     }
-    //var imagePrefix = "http://maps.googleapis.com/maps/api/streetview?size=1000x1000&sensor=false&fov=90&key=AIzaSyDw80SRHmNXmDNeW25lIBx-Jq0W_S-eQxg";
-    //var locations = ['46.192953,9.022615'];
-    //var directions  = ["&heading=360&pitch=-1", "&heading=180&pitch=2.9", "&heading=0&pitch=90", "&heading=270&pitch=-90", "&heading=270&pitch=0", "&heading=90&pitch=2"];
-    //
-    //var skyGeometry = new THREE.BoxGeometry( 800, 800, 800 );
-    //
-    //var materialArray = [];
-    //THREE.ImageUtils.crossOrigin = '';
-    //for (var i = 0; i < 6; i++) {
-    //
-    //    materialArray.push(new THREE.MeshBasicMaterial({
-    //
-    //        map: THREE.ImageUtils.loadTexture(imagePrefix + '&location=' + locations[0] + directions[i]),
-    //        side: THREE.BackSide
-    //    }));
-    //}
-    //var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
-    //var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-    //this.scene.add( skyBox );
-    //
+
+    /*================ Alternative sphere backround from Google street view ================*/
+
+    /*
+    var imagePrefix,
+     locations,
+     directions,
+     skyGeometry,
+     skyMaterialArray,
+     skyMaterial,
+     skyBox;
+
+    imagePrefix = "http://maps.googleapis.com/maps/api/streetview?size=1000x1000&sensor=false&fov=90&key=AIzaSyDw80SRHmNXmDNeW25lIBx-Jq0W_S-eQxg";
+    locations = ['46.192953,9.022615'];
+    directions  = ["&heading=360&pitch=-1", "&heading=180&pitch=2.9", "&heading=0&pitch=90", "&heading=270&pitch=-90", "&heading=270&pitch=0", "&heading=90&pitch=2"];
+
+    skyGeometry = new THREE.BoxGeometry( 800, 800, 800 );
+
+    kyMaterialArray = [];
+    THREE.ImageUtils.crossOrigin = '';
+    for (var i = 0; i < 6; i++) {
+
+     skyMaterialArray.push(new THREE.MeshBasicMaterial({
+
+            map: THREE.ImageUtils.loadTexture(imagePrefix + '&location=' + locations[0] + directions[i]),
+            side: THREE.BackSide
+        }));
+    }
+    skyMaterial = new THREE.MeshFaceMaterial( skyMaterialArray );
+    skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+    this.scene.add( skyBox );
+    */
+
+    /*================ Init Main sphere backround ================*/
+
+    textureLoader = new THREE.TextureLoader();//add module of texture loading
+    progressContainer = $('#preloaderContainer').find('span');
+    /*=======Function that apply if background sphere is loading=======*/
+    function sceneProgress(progress, result ){
+        var target,
+            percent,
+            interval;
+
+        if(result> 15) result  = 15;
+        percent = parseInt(progressContainer.html().match(/\d+/));
+        target = Math.floor(((result/15) *100));
+
+        interval = setInterval(function(){
+            if(percent<100)percent = percent+1;
+            progressContainer.html(percent + ' %');
+            if(percent == target || percent >=100) clearInterval(interval)
+        },100);
+    }
 
 
+    textureLoader.manager.onProgress = throttle(function (progressBar, result) {sceneProgress(progressBar, result)}, 1000);//add and then remove progress function for background texture
+    textureLoader.load('/images/bg/bg_' + getRandomInt(1,10) + '.jpg',function(t){
+        var skyMaterial,
+            percent,
+            interval,
+            skyGeometry,
+            skySphere,
+            interval2;
 
+        percent = parseInt(progressContainer.html().match(/\d+/));
 
-    var skyGeometry = new THREE.SphereGeometry( 300, 180, 60 );
-    var skyMaterial = new THREE.MeshBasicMaterial({
-        //map: THREE.ImageUtils.loadTexture( '/images/bg/bg_' + getRandomInt(1,11) + '.jpg' ),
-        map: THREE.ImageUtils.loadTexture( '/images/bg/bg_10.jpg' ),
-        side: THREE.BackSide
+        interval = setInterval(function(){
+            percent = percent+1;
+            progressContainer.html(percent + ' %');
+            if(percent >= 100) clearInterval(interval)
+        },100);
+
+        skyMaterial = new THREE.MeshBasicMaterial({
+            map: t,
+            side: THREE.BackSide
+        });
+
+        skyGeometry = new THREE.SphereGeometry( 300, 180, 60 );
+
+        skySphere = new THREE.Mesh( skyGeometry, skyMaterial );
+        skySphere.position.y = 50;
+        game.scene.add( skySphere );
+
+        interval2 = setInterval(function(){
+            if(percent >= 100){
+                setTimeout(function() {
+                    hideModal(function () {
+                        gui.newTurnContainer.fadeIn();
+
+                        setTimeout(function () {
+                            gui.newTurnContainer.fadeOut();
+                        }, 1000);
+                    });
+                },5000);
+                clearInterval(interval2);
+            }
+        },1000)
     });
-    var skySphere = new THREE.Mesh( skyGeometry, skyMaterial );
-    skySphere.position.y = 50;
-    this.scene.add( skySphere );
 
-
-    var ambientLight = new THREE.AmbientLight(0xffffff);
-
+    /*================ Init Lights ================*/
+    ambientLight = new THREE.AmbientLight(0xffffff);
     this.scene.add(ambientLight);
 
-    var PointLight = new THREE.PointLight( 0xffffff );
+    PointLight = new THREE.PointLight( 0xffffff );
     PointLight.position.set( 0, 60, 400 );
-    //PointLight.castShadow = true;
     this.scene.add( PointLight );
-
-
-    var spotLight = new THREE.SpotLight( 0xffffff );
+    /*=======Add lighting to scene=======*/
+    spotLight = new THREE.SpotLight( 0xffffff );
     spotLight.position.set( 300, 800, 300 );
     spotLight.intensity = 0.4;
     spotLight.castShadow = true;
-
     spotLight.shadowMapWidth = 2048;
     spotLight.shadowMapHeight = 2048;
-
     spotLight.shadowCameraNear = 500;
     spotLight.shadowCameraFar = 2000;
     spotLight.shadowCameraFov = 30;
-
     this.scene.add( spotLight );
-
 
     // make sure that for the first time, the
     // this.camera is looking at the this.scene
     this.camera.lookAt(this.scene.position);
 
-
-
-    var jsonLoader = new THREE.JSONLoader();
-    jsonLoader.load( "/js/to_other_side/models/firstPlayerModel.js", this.addModelToScene );
+    /*================ Init player models ================*/
     // addModelToScene function is called back after model has loaded
+
+    jsonLoader.load( "/js/to_other_side/models/firstPlayerModel.js", this.addModelToScene );
     jsonLoader.load( "/js/to_other_side/models/secondPlayerModel.js", this.addModelToScene );
-
-    jsonLoader.load( "/js/to_other_side/models/tableModel.js", this.addTableToScene);
-    jsonLoader.load( "/js/to_other_side/models/plateBorderModel.js", this.addPlateBorderToScene);
-
-
-
-
-
 
 };
 

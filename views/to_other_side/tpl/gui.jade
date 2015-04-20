@@ -1,14 +1,44 @@
-div#turnContainer.turnContainer
+div.turnContainer
    span.
       White: 1 Turn
 
-div#newTurnContainer.newTurnContainer
+div.newTurnContainer
    span.
       White Player Turn
 
-div#menuIcon.menuIcon
+div.menuIcon
 
-div#playerIconContainer.playerIconContainer
-   div#playerIcon.playerIcon.playerIcon__on
+div.helpIcon
+
+div.playerIconContainer
+   div.playerIcon.playerIcon__on
    br
-   div#sl.sl
+
+div.preloaderContainer
+   span 0 %
+   br
+   img(src='/images/preloader.GIF')
+
+form.new-game__settings
+   h3.new-game__result
+      span.whitePlayer(data-value='0') Human
+      |&nbsp;VS&nbsp;
+      span.blackPlayer(data-value='1') Pc
+   p Please, select types of Players. You can play with PC or with another Player.
+   div.new-game__player-block
+      p White player
+      fieldset.choise-block
+         label.human Ai
+            input(type="radio", class="on_off", name="whitePlayer", value="1")
+         label.ai Human
+            input(type="radio", class="on_off", name="whitePlayer",checked=true, value="0")
+   div.new-game__player-block
+      p Black player
+      fieldset.choise-block
+         label.human Ai
+            input(type="radio", class="on_off", name="blackPlayer", value="1")
+         label.ai Human
+            input(type="radio", class="on_off", name="blackPlayer", value="0")
+
+   div.reswitch#reswitch
+      div

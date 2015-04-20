@@ -3,15 +3,32 @@ extends ../layout
 block content
     script(src='/js/to_other_side/game.js')
     script(src='/js/to_other_side/gui.js')
-
-    script(src='/js/to_other_side/main.js')
     script(src='/js/to_other_side/events.js')
 
+    script(src='/js/to_other_side/main.js')
 
-    video(autoplay='', id='player', name='media', style='display: none', data-volume='0.3')
-        source(src='http://174.36.206.197:8000/;stream.nsv', type='audio/mpeg')
     div(id='WebGL-output')
 
     div#jade-templates(style='visibility:hidden;')
         include tpl/gui.jade
         include  tpl/menu.jade
+        include  tpl/rules.jade
+
+    div.modalWrapper#modalWrapper(style="opacity: 1; display: none;")
+        div.modalLayout
+        div.modalContainer
+            div.modalInner
+                div.modalContent
+                    h1
+                        img.logo-img(src="/images/icon128.png", width="58")
+                        | To other side
+                    div.modalText(style="height: auto")
+                        p You use old version of browser. This version is not supported.<br><br> For playing this game update your browser or download new. Google Chrome, for exapmle.<br><br> <a href="https://www.google.com/chrome/browser/desktop/index.html">Click here to download</a>
+
+    script(type="text/javascript").
+        if(window.outerWidth > 1024 && !document.all){
+            document.body.removeChild(document.getElementById('modalWrapper'));
+        }else {
+            document.getElementById('modalWrapper').style.display = 'block';
+        }
+
