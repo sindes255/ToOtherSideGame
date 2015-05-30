@@ -34,7 +34,7 @@ if(window.outerWidth > 1024 && !document.all) {
     window.gui = new Gui();
     window.game = new Game();
     window.events = new Events();
-
+    window.ai = new Ai();
 
     $(document).ready(function () {
         var body = $('body');
@@ -132,7 +132,7 @@ if(window.outerWidth > 1024 && !document.all) {
                                     updateModal({
                                         header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                                         text: 'To rotate view use arrow keys on your keyboard or click left key and drag.',
-                                        background: 'url(/images/bg/main-bg2.jpg) no-repeat center center fixed',
+                                        background: 'url(/images/bg/main-bg2.jpg)',
                                         load: 1,
                                         callback: newGame
                                     });
@@ -170,7 +170,7 @@ if(window.outerWidth > 1024 && !document.all) {
             ]
         };
 
-        initMusic('http://174.36.206.197:8000/;stream.nsv');
+        //initMusic('http://174.36.206.197:8000/;stream.nsv');
         showModal(menuObj);
     });
 
@@ -199,179 +199,254 @@ if(window.outerWidth > 1024 && !document.all) {
         gui.init();
         game.init();
         events.init();
+        ai.init();
 
         webGlOutput = window.webGlOutput = $("#WebGL-output");
         webGlOutput.append(game.renderer.domElement);
         controlses = new THREE.OrbitControls(game.camera, game.renderer.domElement);
 
-        /*================ Function that test table cells for availible ================*/
-        window.canPut = function (el, el2) {//draggingElem - el; targetElem - el2;
+        /*================ Check for available cell that choose================*/
+        window.canPut = function (el, el2) {//el-moving element, el2 -target element
             var draggingElem,
                 targetElem,
                 canPut,
                 isDraggingElemInGame,
                 targetCoords,
-                playerCoords,
                 plateCoords,
-                platesCoordsArr,
-                _y,
-                _x,
-                canGoPlatesArr,
-                counter1;
+                anotherPlayer,
+                anotherPlayerName,
+                anotherPlayerCoords,
+                startRow,
+                endRow,
+                player;
 
             draggingElem = el;
             targetElem = el2;
             canPut = true;
-            isDraggingElemInGame = true;
+
+            if (draggingElem.name.indexOf('Player') != -1) {//if moving element is Player  model
+                targetCoords = targetElem.object.coords;
+                canPut = game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y][targetCoords.x].available;
+            }else if (draggingElem.name.indexOf('Plate') != -1) {//if moving element is Plate  model
+                plateCoords = {//multiple of target point and 19, find center of target cell
+                    x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
+                    y: targetElem.point.y + 9,
+                    z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
+                };
+
+                targetCoords = {
+                    x:0,
+                    y:0
+                };
+
+                targetCoords.y = game.platesCoordsArr[plateCoords.z];
+                targetCoords.x = game.platesCoordsArr[plateCoords.x];
+
+                /*Check near cells for available*/
+                if(draggingElem.tmpRotation == 0) {
+                    for(var i = -1; i < 2 ; i++) {
+                        if(game.stats.players.whitePlayer.fieldArray[targetCoords.y + i][targetCoords.x].available == false){
+                            canPut = false;
+                            break
+                        }
+                    }
+                }else if(draggingElem.tmpRotation == 1) {
+                    for(var i = -1; i < 2 ; i++) {
+                        if(game.stats.players.whitePlayer.fieldArray[targetCoords.y][targetCoords.x + i].available == false){
+                            canPut = false;
+                            break
+                        }
+                    }
+                }
+
+                /*start prepare for checking - can plate going to other side or not?*/
+                if(canPut) {
+                    canPut = true;
+
+                    if(game.stats.currentPlayer == 'white'){
+                        anotherPlayerName = 'black';
+                        anotherPlayer = player =game.scene.getObjectByName('secondPlayerModel');
+                        startRow = 0;
+                        endRow = 16;
+                    }else{
+                        anotherPlayerName = 'white';
+                        anotherPlayer = player =game.scene.getObjectByName('firstPlayerModel');
+                        endRow = 0
+                        startRow = 16;
+                    }
+
+                    anotherPlayerCoords = game.stats.players[anotherPlayerName + 'Player'].coords;
+
+                    isDraggingElemInGame=true;
+
+                    if((player.position.x > game.geometries.plane.x / 2 ||
+                        player.position.x < -(game.geometries.plane.x / 2)) ||
+                        (player.position.z > game.geometries.plane.y / 2 ||
+                        player.position.z < -(game.geometries.plane.y / 2))) {
+                        isDraggingElemInGame = false
+                    }
+
+                    var startCoords = {x: 0, y:0};
+                    if(!isDraggingElemInGame){
+                        startCoords.x = 0;
+                        startCoords.y = startRow;
+                    }else{
+                        startCoords.x = anotherPlayerCoords.x;
+                        startCoords.y = anotherPlayerCoords.y;
+                    }
+
+                    canPut = aStarSearch.showInput({/*use A* searching way algoithm*/
+                        startCoords:  startCoords,
+                        endRow:  endRow,
+                        plate: {
+                            coords: targetCoords,
+                            rotate: draggingElem.tmpRotation
+                        }
+                    }).canGo;
+                }
+            }
+            // Can moving element puts to target element
+            return canPut
+        };
+
+        /*================ Function that mark available or unavailable after turn is over ================*/
+        window.checkForAvailable= function (el, el2,type, rot) {
+        // el-moving element,
+        // el2 -target element,
+        // type - type of moving element,
+        // rot - rotation of moving element
+
+            var draggingElem,
+                targetElem,
+                isDraggingElemInGame,
+                targetCoords,
+                playerCoords,
+                plateCoords,
+                player,
+                directionArr;
+
+            draggingElem = el;
+            targetElem = el2;
+            isDraggingElemInGame = false;
+            if(game.stats.currentPlayer == 'white'){
+                player =game.scene.getObjectByName('firstPlayerModel');
+            }else{
+                player =game.scene.getObjectByName('secondPlayerModel');
+            }
 
             /*=======If dragging element on table game is start for player=======*/
-            if ((draggingElem.position.x > game.geometries.plane.x / 2 ||
-                draggingElem.position.x < -(game.geometries.plane.x / 2)) ||
-                (draggingElem.position.z > game.geometries.plane.y / 2 ||
-                draggingElem.position.z < -(game.geometries.plane.y / 2))) {
-                isDraggingElemInGame = false
-            }
-            /*=======If current object is player model=======*/
-            if (draggingElem.name.indexOf('Player') != -1) {
+
+            if (type == 'player') {
                 targetCoords = targetElem.object.coords;
                 playerCoords = game.stats.players[game.stats.currentPlayer + 'Player'].coords;
 
-                if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y][targetCoords.x].filling != '') {
-                    //cant put to this cell, because this cell is occupied
-                    canPut = false
-                } else if (((targetCoords.y != 0 && game.stats.currentPlayer == 'black') ||
-                    (targetCoords.y != 16 && game.stats.currentPlayer == 'white')) && !isDraggingElemInGame) {
-                    //cant put to this cell, because is player model not in the table and this is not first row for the player
-                    canPut = false
-                } else if (isDraggingElemInGame &&
-                    ((playerCoords.y + 2 != targetCoords.y || playerCoords.x != targetCoords.x) &&
-                    (playerCoords.y - 2 != targetCoords.y || playerCoords.x != targetCoords.x) &&
-                    (playerCoords.y != targetCoords.y || playerCoords.x + 2 != targetCoords.x) &&
-                    (playerCoords.y != targetCoords.y || playerCoords.x - 2 != targetCoords.x))) {
-                    //cant put to this cell, because this cell is not neighbor to the player model
-                    canPut = false
-                } else if (isDraggingElemInGame &&
-                    ((playerCoords.y + 2 == targetCoords.y && playerCoords.x == targetCoords.x) && (playerCoords.y + 1 < 17 && game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y + 1][playerCoords.x].filling != '')) ||
-                    ((playerCoords.y - 2 == targetCoords.y && playerCoords.x == targetCoords.x) && (playerCoords.y - 1 > -1 && game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y - 1][playerCoords.x].filling != '')) ||
-                    ((playerCoords.y == targetCoords.y && playerCoords.x + 2 == targetCoords.x) && (playerCoords.x + 1 < 17 && game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y][playerCoords.x + 1].filling != '')) ||
-                    ((playerCoords.y == targetCoords.y && playerCoords.x - 2 == targetCoords.x) && (playerCoords.x - 1 > -1 && game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y][playerCoords.x - 1].filling != ''))) {
-                    canPut = false
+                /*If its first player model moving - mark all first row not available fo moving*/
+                if (targetCoords.y == 0 || targetCoords.y == 16) {
+                    isDraggingElemInGame = true
                 }
-            } else if (draggingElem.name.indexOf('Plate') != -1) {
-                /*=======If current object is plate model=======*/
+                if(isDraggingElemInGame){
+                    for(var i = 0; i < 17;i = i + 2){
+                        game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y][i].available = false;
+                    }
+                }
+
+                /*Mark target cells in to players arrays not available*/
+                game.stats.players.whitePlayer.fieldArray[targetCoords.y][targetCoords.x].available = false;
+                game.stats.players.blackPlayer.fieldArray[targetCoords.y][targetCoords.x].available = false;
+
+                directionArr = [
+                    {x: 0,y: +1,_x: 0, _y: +2},
+                    {x: 0,y: -1,_x: 0, _y: -2},
+                    {x: +1,y: 0,_x: +2, _y: 0},
+                    {x: -1,y: 0,_x: -2, _y: 0}
+                ];
+
+                /*Check near cells*/
+                for(var i in directionArr){
+                    if(playerCoords.x + directionArr[i]._x >= 0 && playerCoords.x + directionArr[i]._x <= 16 && playerCoords.y + directionArr[i]._y >= 0 && playerCoords.y + directionArr[i]._y <= 16) {//if model on table
+                        game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y + directionArr[i]._y][playerCoords.x + directionArr[i]._x].available = false;
+
+                        /*Switch later position to available*/
+                        if(playerCoords.y &&
+                            game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y + directionArr[i].y][playerCoords.x + directionArr[i].x].filling == '' &&
+                            game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[playerCoords.y + directionArr[i]._y][playerCoords.x + directionArr[i]._x].filling != ''){
+                            game.stats.players.whitePlayer.fieldArray[playerCoords.y][playerCoords.x].available = true;
+                            game.stats.players.blackPlayer.fieldArray[playerCoords.y][playerCoords.x].available = true;
+                        }
+                    }
+                    if(targetCoords.x + directionArr[i].x >= 0 && targetCoords.x + directionArr[i].x <= 16 && targetCoords.y + directionArr[i].y >= 0 && targetCoords.y + directionArr[i].y <= 16){//if model on table
+                        /*If nearest position is filling switch available to TRUE, else to FALSE*/
+                        if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[i].y][targetCoords.x + directionArr[i].x].filling != '' ||
+                            game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[i]._y][targetCoords.x + directionArr[i]._x].filling != ''
+                        ){
+
+                            game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[i]._y][targetCoords.x + directionArr[i]._x].available = false;
+                        }else{
+                            game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[i]._y][targetCoords.x + directionArr[i]._x].available = true;
+
+                        }
+
+                    }
+
+                }
+
+
+            }else if(type="plate"){
                 plateCoords = {
                     x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
                     y: targetElem.point.y + 9,
                     z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
                 };
 
-                platesCoordsArr = {
-                    '-66.5': 1,
-                    '-47.5': 3,
-                    '-28.5': 5,
-                    '-9.5': 7,
-                    '9.5': 9,
-                    '28.5': 11,
-                    '47.5': 13,
-                    '66.5': 15
+                targetCoords = {
+                    x:0,
+                    y:0
                 };
 
-                _y = platesCoordsArr[plateCoords.z];
-                _x = platesCoordsArr[plateCoords.x];
-                game.triggers.isTurnBlocked = -1;
-                canGoPlatesArr = {};
-                counter1 = 0;
+                directionArr = [
+                    [
+                        {x: +1,y: +1,_x: -1, _y: +1},
+                        {x: -1,y: +1,_x: +1, _y: +1},
+                        {x: +1,y: -1,_x: -1, _y: -1},
+                        {x: -1,y: -1,_x: +1, _y: -1}
+                    ],
+                    [
+                        {y: +1,x: +1,_y: -1, _x: +1},
+                        {y: -1,x: +1,_y: +1, _x: +1},
+                        {y: +1,x: -1,_y: -1, _x: -1},
+                        {y: -1,x: -1,_y: +1, _x: -1}
+                    ]
+                ];
 
-                if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[_y][_x].filling != '') {
-                    //cant put to this cell, because this cell is occupied
-                    canPut = false
-                } else if (draggingElem.tmpRotation == 0) {
-                    //cant put to this cell, because current plate have crossing plates
-                    if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[_y + 1][_x].filling != '' || game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[_y - 1][_x].filling != '') {
-                        canPut = false;
-                    } else {
-                        canPut = canGo(_x, _y, true);
-                    }
-                } else if (draggingElem.tmpRotation == 1) {
-                    if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[_y][_x + 1].filling != '' || game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[_y][_x - 1].filling != '') {
-                        canPut = false;
-                    } else {
-                        canPut = canGo(_x, _y, true);
-                    }
+
+            targetCoords.y = game.platesCoordsArr[plateCoords.z];
+            targetCoords.x = game.platesCoordsArr[plateCoords.x];
+
+            if(rot == 0) {
+                for(var i = -1; i < 2 ; i++) {
+                    game.stats.players.whitePlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
+                    game.stats.players.blackPlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
                 }
 
-                /*================ Function that table dont block horizontal or vertical ================*/
-                function canGo(x, y, isFirst) {//x,y - coords of target plate position;isFirst - is this turn first for player
-                    var cureentPlate,
-                        directions,
-                        cureentPlateRotate;
-
-                    counter1 = counter1 + 1;
-                    cureentPlate = {};
-                    directions = [];
-
-                    if (!isFirst) {
-                        cureentPlate = game.scene.getObjectByName(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[y][x].filling);
-                    } else {
-                        cureentPlate = draggingElem;
-                    }
-
-                    cureentPlateRotate = cureentPlate.tmpRotation;
-
-                    if (cureentPlateRotate == 1) {
-                        directions = [{x: x - 4, y: y, rotation: 1}, {x: x + 4, y: y, rotation: 1}, {
-                            x: x,
-                            y: y - 2,
-                            rotation: 0
-                        }, {x: x, y: y + 2, rotation: 0}, {x: x - 2, y: y - 2, rotation: 0}, {
-                            x: x + 2,
-                            y: y + 2,
-                            rotation: 0
-                        }, {x: x + 2, y: y - 2, rotation: 0}, {x: x - 2, y: y + 2, rotation: 0}, {
-                            x: x + 2,
-                            y: y,
-                            rotation: 1
-                        }, {x: x - 2, y: y, rotation: 1}];
-                    } else {
-                        directions = [{x: x - 2, y: y, rotation: 1}, {x: x + 2, y: y, rotation: 1}, {
-                            x: x,
-                            y: y - 4,
-                            rotation: 0
-                        }, {x: x, y: y + 4, rotation: 0}, {x: x - 2, y: y - 2, rotation: 1}, {
-                            x: x + 2,
-                            y: y + 2,
-                            rotation: 1
-                        }, {x: x + 2, y: y - 2, rotation: 1}, {x: x - 2, y: y + 2, rotation: 1}, {
-                            x: x,
-                            y: y + 2,
-                            rotation: 1
-                        }, {x: x, y: y - 2, rotation: 1}];
-                    }
-                    /*
-                      Search for neighbor plates and if two plates on the border of the table you cant put to this cell.
-                      Plates cant crossing table, because player can go to other side without blockable
-                      */
-                    for (var i in directions) {
-                        if (directions[i].y < -1 || directions[i].y > 17 || directions[i].x < -1 || directions[i].x > 17) {
-                            game.triggers.isTurnBlocked = game.triggers.isTurnBlocked + 1;
-                        } else if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y]) {
-                            if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x]) {
-                                if (game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x].filling != '' && !canGoPlatesArr[game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x].filling] &&
-                                    game.scene.getObjectByName(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x].filling).tmpRotation == directions[i].rotation
-                                ) {
-                                    canGoPlatesArr[game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x].filling] = game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[directions[i].y][directions[i].x];
-                                    canGo(directions[i].x, directions[i].y, false)
-                                }
-                            }
-                        }
-                    }
-                    //return false if chain of plates have two ends on the border of the table, if all is ok - return true
-                    return game.triggers.isTurnBlocked <= 1
+            }else if(rot == 1) {
+                for(var i = -1; i < 2 ; i++) {
+                    game.stats.players.whitePlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
+                    game.stats.players.blackPlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
                 }
             }
-            //return true if plate or player model can puts to current cell, else return false
-            return canPut
-        };
+            for(var j in directionArr[rot]){
+                if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling != ''){
+                    var thisColor;
+                    if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling == 'firstPlayerModel'){
+                        thisColor = 'white'
+                    }else{
+                        thisColor = 'black'
+                    }
+                    game.stats.players[thisColor + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j]._y][targetCoords.x + directionArr[rot][j]._x].available = false;
+                }
+            }
+        }
+};
 
         /*================ Function that playing when triggers on and anmate camera, player  or plate ================*/
         animationHandler = function (trigger, optionsObj) {// trigger - name of animation object; optionsObj - options

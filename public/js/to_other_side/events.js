@@ -2,10 +2,10 @@ function Events(){}
 Events.prototype.init = function() {
     /*================ Remove all event listeners ================*/
     game.removeEventListeners = function () {
-        webGlOutput.unbind('mousedown', throttle);
-        webGlOutput.unbind('mouseup', throttle);
-        webGlOutput.unbind('mousemove', throttle);
-        webGlOutput.unbind('mousewheel', throttle);
+        $("#WebGL-output").unbind('mousedown');
+        $("#WebGL-output").unbind('mouseup');
+        $("#WebGL-output").unbind('mousemove');
+        $("#WebGL-output").unbind('mousewheel');
     };
 
     /*================ Add all event listeners ================*/
@@ -68,7 +68,7 @@ Events.prototype.init = function() {
 
         intersects = game.getObjectByCursorPosition(event);
 
-        if (intersects.length > 0 && intersects[0].object.name != game.dragObj.lastTargetObject) {
+        if (intersects.length > 0 &&(intersects[0].object.name == 'plane' || intersects[0].object.name != game.dragObj.lastTargetObject)) {
             game.dragObj.lastTargetObject = intersects[0].object.name;
             targetPosition = intersects[0].object.position;
             cursorPosition = intersects[0].point;
@@ -206,6 +206,7 @@ Events.prototype.init = function() {
                 game.dragObj.dragStart = 1;
             } else {
                 if (game.dragObj.dragStart == 1) {
+
                     if (intersects[0].object.name.indexOf('cube') != -1 && game.dragObj.name.indexOf('Player') != -1 && game.scene.getObjectByName('greenOutlineCubeMesh')) {
                         targetName = 'greenOutlineCubeMesh';
                         /*=======Start dragging, set postions of dragging elements=======*/
@@ -222,6 +223,7 @@ Events.prototype.init = function() {
                             game.stats.players.whitePlayer.fieldArray[game.stats.players[game.stats.currentPlayer + 'Player'].coords.y][game.stats.players[game.stats.currentPlayer + 'Player'].coords.x].filling = '';
                             game.stats.players.blackPlayer.fieldArray[game.stats.players[game.stats.currentPlayer + 'Player'].coords.y][game.stats.players[game.stats.currentPlayer + 'Player'].coords.x].filling = '';
                         }
+                        window.checkForAvailable(game.scene.getObjectByName(game.dragObj.name), intersects[0],'player');
                         game.stats.players[game.stats.currentPlayer + 'Player'].coords = {
                             y: intersects[0].object.coords.y,
                             x: intersects[0].object.coords.x
@@ -229,6 +231,10 @@ Events.prototype.init = function() {
 
                         game.stats.players.whitePlayer.fieldArray[intersects[0].object.coords.y][intersects[0].object.coords.x].filling = game.dragObj.name;
                         game.stats.players.blackPlayer.fieldArray[intersects[0].object.coords.y][intersects[0].object.coords.x].filling = game.dragObj.name;
+
+
+
+
                         /*=======If target table cell is in last row of current player, this player WIN GAME=======*/
                         if ((intersects[0].object.name.indexOf('cube[0]') != -1 && game.stats.currentPlayer == 'white') ||
                             (intersects[0].object.name.indexOf('cube[16]') != -1 && game.stats.currentPlayer == 'black')) {
@@ -276,6 +282,8 @@ Events.prototype.init = function() {
                             '47.5': 13,
                             '66.5': 15
                         };
+
+                        var rot = game.scene.getObjectByName(game.dragObj.name).tmpRotation;
                         _y = platesCoordsArr[game.scene.getObjectByName(targetName).position.z];
                         _x = platesCoordsArr[game.scene.getObjectByName(targetName).position.x];
 
@@ -286,20 +294,23 @@ Events.prototype.init = function() {
                             }
                         }
                         /*=======Set coords of plate from rotation of this plate=======*/
-                        if (game.scene.getObjectByName(game.dragObj.name).tmpRotation == 0) {
-                            game.scene.getObjectByName(game.dragObj.name).coords[0] = {y: _y - 1, x: _x};
-                            game.scene.getObjectByName(game.dragObj.name).coords[1] = {y: _y, x: _x};
-                            game.scene.getObjectByName(game.dragObj.name).coords[2] = {y: _y + 1, x: _x};
-                        } else {
+
+                        if (rot) {
                             game.scene.getObjectByName(game.dragObj.name).coords[0] = {y: _y, x: _x - 1};
                             game.scene.getObjectByName(game.dragObj.name).coords[1] = {y: _y, x: _x};
                             game.scene.getObjectByName(game.dragObj.name).coords[2] = {y: _y, x: _x + 1};
+                        } else {
+                            game.scene.getObjectByName(game.dragObj.name).coords[0] = {y: _y - 1, x: _x};
+                            game.scene.getObjectByName(game.dragObj.name).coords[1] = {y: _y, x: _x};
+                            game.scene.getObjectByName(game.dragObj.name).coords[2] = {y: _y + 1, x: _x};
+
                         }
                         for (var f = 0; f < 3; f++) {
                             game.stats.players.whitePlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = game.dragObj.name;
                             game.stats.players.blackPlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = game.dragObj.name;
 
                         }
+
                         /*=======Set poisitions of current plate=======*/
                         game.triggers.plate.obj = game.scene.getObjectByName(game.dragObj.name);
                         game.triggers.plate.startPosition.z = game.scene.getObjectByName(game.dragObj.name).position.z;
@@ -310,6 +321,8 @@ Events.prototype.init = function() {
                         game.triggers.plate.targetPosition.y = game.scene.getObjectByName(targetName).position.y;
                         game.triggers.plate.switch = 1;
 
+                        window.checkForAvailable(game.scene.getObjectByName(game.dragObj.name), intersects[0],'plate',rot);
+
                         game.scene.getObjectByName(game.dragObj.name).remove(game.sprite);
                         game.swichTurn();
                         game.dragObj.lastTargetObject = '';
@@ -319,6 +332,8 @@ Events.prototype.init = function() {
                         game.dragObj.name = '';
                         game.dragObj.dragStart = 0;/*=======End  dragging if target not availible for dragging=======*/
                     }
+
+
 
                     if (gameOver != 0) {
                         setTimeout(function () {

@@ -492,7 +492,7 @@ window.showModal = function(obj){// object with option of modal
             updateModal({
                 header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                 text: '<br>To rotate view use arrow keys on your keyboard or click left key and drag.',
-                background: 'url(/images/bg/main-bg2.jpg) no-repeat center center fixed',
+                background: 'url(/images/bg/main-bg2.jpg)',
                 load:1,
                 callback:newGame
             });
@@ -663,7 +663,9 @@ window.updateModal = function(obj, fn){//obj - object of modal options, fn - cal
                 hideModal();
             });
         }
-
+        if(obj.load) {
+            modalLayout.unbind('click');
+        }
         if(obj.close){
             closeEl.on('click', function(){
                 hideModal();
@@ -679,7 +681,7 @@ window.updateModal = function(obj, fn){//obj - object of modal options, fn - cal
                 updateModal({
                     header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                     text: '<br>To rotate view use arrow keys on your keyboard or click left key and drag.',
-                    background: 'url(/images/bg/main-bg2.jpg) no-repeat center center fixed',
+                    background: 'url(/images/bg/main-bg2.jpg)',
                     load:1,
                     callback:newGame
                 });
@@ -809,6 +811,225 @@ window.getTemplateByClass = function(cl){// class of adding template
 };
 
 /*================ END Template compile plugin ================*/
+
+/*================ BEGIN A Star Algorithm ================*/
+
+window.aStarSearch = function(){
+    return {
+        showInput: function(obj){
+            var closeArray,
+                openArray,
+                playerDirection,
+                startCellCoords,
+                globalCurrentCellCoords,
+                table,
+                newCellCoords,
+                result;
+
+            closeArray = [];
+            openArray = [];
+            result ={
+                canGo: false,
+                way: []
+            };
+
+            for(var i = 0; i<=16; i++){
+                closeArray[i] = [];
+                openArray[i] = [];
+
+                for(var j = 0; j<=16; j++){
+                    closeArray[i][j] = {};
+                    openArray[i][j] = {};
+                }
+            }
+
+            table = game.stats.players.whitePlayer.fieldArray;
+
+            globalCurrentCellCoords = startCellCoords = obj.startCoords;
+
+            closeArray[globalCurrentCellCoords.y][globalCurrentCellCoords.x] = newCell(globalCurrentCellCoords);
+
+            if((game.stats.currentPlayer == 'white' && obj.plate) || (game.stats.currentPlayer == 'black' && !obj.plate)){
+                playerDirection = +1;
+            }else{
+                playerDirection = -1
+            }
+
+            var directions = [
+                {x: 0, y: +1 * playerDirection, _x: 0, _y: +2 * playerDirection},//up
+
+                {x: -1 * playerDirection, y: 0, _x: -2 * playerDirection, _y: 0},//right
+
+                {x: 0, y: -1 * playerDirection, _x: 0, _y: -2 * playerDirection},//down
+
+                {x: +1 * playerDirection, y: 0, _x: +2 * playerDirection, _y: 0}//left
+
+            ];
+
+            function getCoof(coords1,coords2){
+                var result ={};
+
+                result.H = Math.abs(coords1.y - obj.endRow);
+
+                result.G = closeArray[coords2.y][coords2.x].G +1
+
+                result.F = result.G + result.H;
+
+                return result
+            }
+
+            function newCell(coords1,coords2){
+                var obj ={};
+
+                obj.coords = {
+                    x:coords1.x,
+                    y:coords1.y
+                };
+                if(coords2){
+                    var coof = getCoof(coords1,coords2);
+                    obj.parent = {
+                        x:coords2.x,
+                        y:coords2.y
+                    };
+                    obj.F = coof.F;
+                    obj.G = coof.G;
+                    obj.H = coof.H;
+                }else{
+                    obj.F = 0;
+                    obj.G = 0;
+                    obj.H = 0;
+                }
+
+                return obj
+            }
+
+            function isTargetPlate(x,y){
+                var result = false;
+
+                if(obj.plate){
+                    if(obj.plate.rotate == 0) {
+                        for(var i = -1; i < 2 ; i++) {
+                            if(obj.plate.coords.y + i == y && obj.plate.coords.x == x ){
+                                result = true;
+                                break
+                            }
+                        }
+                    }else if(obj.plate.rotate == 1) {
+                        for(var i = -1; i < 2 ; i++) {
+                            if(obj.plate.coords.y == y && obj.plate.coords.x + i == x ){
+                                result = true;
+                                break
+                            }
+                        }
+                    }
+                }
+
+                return result
+            }
+
+
+            function switchArrays(minCoords){
+                closeArray[minCoords.y][minCoords.x].coords =  openArray[minCoords.y][minCoords.x].coords;
+                closeArray[minCoords.y][minCoords.x].parent =  openArray[minCoords.y][minCoords.x].parent;
+
+                closeArray[minCoords.y][minCoords.x].F =  openArray[minCoords.y][minCoords.x].F;
+                closeArray[minCoords.y][minCoords.x].G =  openArray[minCoords.y][minCoords.x].G;
+                closeArray[minCoords.y][minCoords.x].H =  openArray[minCoords.y][minCoords.x].H;
+
+                openArray[minCoords.y][minCoords.x] = {};
+
+                searchNear(minCoords);
+            }
+
+            function searchNear(currentCellCoords){
+                var thisCoof,
+                    minF = 200,
+                    minCoords = {};
+
+                for(var i in directions){
+                    if(result.canGo == false && currentCellCoords.y + directions[i]._y >=0 && currentCellCoords.y + directions[i]._y <=16 && currentCellCoords.x + directions[i]._x >=0 && currentCellCoords.x + directions[i]._x <=16 ){
+                        if(table[currentCellCoords.y + directions[i].y][currentCellCoords.x + directions[i].x].available && !isTargetPlate(currentCellCoords.x + directions[i].x, currentCellCoords.y + directions[i].y)) {
+                            newCellCoords = {};
+                            newCellCoords.x = currentCellCoords.x + directions[i]._x;
+                            newCellCoords.y = currentCellCoords.y + directions[i]._y;
+
+                            if(newCellCoords.y == obj.endRow){
+                                result.canGo = true;
+                                result.finalCoords = newCellCoords;//console.log(newCellCoords);
+                                closeArray[newCellCoords.y][newCellCoords.x] = newCell(newCellCoords, currentCellCoords);
+                            }else if (!openArray[newCellCoords.y][newCellCoords.x].coords &&
+                                !closeArray[newCellCoords.y][newCellCoords.x].coords) {
+
+                                openArray[newCellCoords.y][newCellCoords.x] = newCell(newCellCoords, currentCellCoords);
+
+                                if( openArray[newCellCoords.y][newCellCoords.x].F < minF){
+                                    minF = openArray[newCellCoords.y][newCellCoords.x].F;
+                                    minCoords.x = newCellCoords.x;
+                                    minCoords.y = newCellCoords.y;
+                                }
+
+                            }else if(openArray[newCellCoords.y][newCellCoords.x].coords){
+                                if(closeArray[currentCellCoords.y][currentCellCoords.x].G > openArray[newCellCoords.y][newCellCoords.x].G + 1){
+                                    closeArray[currentCellCoords.y][currentCellCoords.x].parent.x = newCellCoords.x;
+                                    closeArray[currentCellCoords.y][currentCellCoords.x].parent.y = newCellCoords.y;
+                                    thisCoof = getCoof(newCellCoords, currentCellCoords);
+
+                                    closeArray[currentCellCoords.y][currentCellCoords.x].G = thisCoof.G;
+                                    closeArray[currentCellCoords.y][currentCellCoords.x].F = thisCoof.F;
+
+                                }
+
+                            }
+
+                        }
+                    }
+                }
+
+                if(minF != 200){
+                    switchArrays(minCoords);
+                }else{
+                    for(var i in openArray){
+                        for(var j in openArray){
+                            if(openArray[i][j].F){
+                                if( openArray[i][j].F < minF){
+                                    minF = openArray[i][j].F;
+                                    minCoords.x = openArray[i][j].coords.x;
+                                    minCoords.y = openArray[i][j].coords.y;
+                                }
+                            }
+                        }
+                    }
+                    if(minF != 200){
+                        switchArrays(minCoords);
+                    }
+                }
+            }
+
+            searchNear(globalCurrentCellCoords);
+
+
+            if(result.canGo){
+                var wayCoords = result.finalCoords;
+                var tmpCoords = {};
+
+                while(startCellCoords.x != wayCoords.x || startCellCoords.y != wayCoords.y ){
+                    result.way.unshift({x: wayCoords.x, y: wayCoords.y});
+                    tmpCoords.x = wayCoords.x;
+                    tmpCoords.y = wayCoords.y;
+
+                    wayCoords.x = closeArray[tmpCoords.y][tmpCoords.x].parent.x;
+                    wayCoords.y = closeArray[tmpCoords.y][tmpCoords.x].parent.y;
+                }
+                result.way.unshift({x: startCellCoords.x, y: startCellCoords.y});
+            }
+
+            return  result
+        }
+    }
+}();
+
+/*================ END A Star Algorithm ================*/
+
 
 /*================ BEGIN Animation plugin ================*/
 

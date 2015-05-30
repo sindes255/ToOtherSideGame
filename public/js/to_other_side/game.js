@@ -105,6 +105,19 @@ function Game(){
     };
 
     this.targetList = [];
+
+    this.platesCoordsArr = {
+        '-85.5': 1,
+        '-66.5': 1,
+        '-47.5': 3,
+        '-28.5': 5,
+        '-9.5': 7,
+        '9.5': 9,
+        '28.5': 11,
+        '47.5': 13,
+        '66.5': 15,
+        '85.5': 15
+    };
 }
 
 /*================ Add object to scene ================*/
@@ -346,35 +359,51 @@ Game.prototype.init = function(){
             if(k % 2 == 1 && k != 17  ) {
                 if (l % 2 == 1 && l != 17) {
                     this.stats.players.whitePlayer.fieldArray[k].push(
-                        {type: 'plateCrossing', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plateCrossing', coords: {x: l, y: k}, filling: '', available: true}
                     );
                     this.stats.players.blackPlayer.fieldArray[k].push(
-                        {type: 'plateCrossing', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plateCrossing', coords: {x: l, y: k}, filling: '', available: true}
                     );
                 } else if (j != 17) {
                     this.stats.players.whitePlayer.fieldArray[k].push(
-                        {type: 'plate', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
                     );
                     this.stats.players.blackPlayer.fieldArray[k].push(
-                        {type: 'plate', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
                     );
                 }
             }else if (k != 17){
                 if (l % 2 == 1 && l != 17) {
 
                     this.stats.players.whitePlayer.fieldArray[k].push(
-                        {type: 'plate', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
                     );
                     this.stats.players.blackPlayer.fieldArray[k].push(
-                        {type: 'plate', coords: {x: l, y: k}, filling: ''}
+                        {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
                     );
                 } else if (l != 17) {
-                    this.stats.players.whitePlayer.fieldArray[k].push(
-                        {type: 'cube', coords: {x: l, y: k}, filling: ''}
-                    );
-                    this.stats.players.blackPlayer.fieldArray[k].push(
-                        {type: 'cube', coords: {x: l, y: k}, filling: ''}
-                    );
+                    if(k == 0){
+                        this.stats.players.blackPlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: true}
+                        );
+                        this.stats.players.whitePlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: false}
+                        );
+                    }else if(k == 16) {
+                        this.stats.players.blackPlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: false}
+                        );
+                        this.stats.players.whitePlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: true}
+                        );
+                    }else{
+                        this.stats.players.whitePlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: false}
+                        );
+                        this.stats.players.blackPlayer.fieldArray[k].push(
+                            {type: 'cube', coords: {x: l, y: k}, filling: '', available: false}
+                        );
+                    }
                 }
             }
         }

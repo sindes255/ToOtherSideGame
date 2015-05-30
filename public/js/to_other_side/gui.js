@@ -72,7 +72,7 @@ Gui.prototype.init = function(){
                             updateModal({
                                 header: '<img class="logo-img" src="/images/icon128.png" width="58" height="58"/>To other side',
                                 text: '<br>To rotate view use arrow keys on your keyboard or click left key and drag.',
-                                background: 'url(/images/bg/main-bg2.jpg) no-repeat center center fixed',
+                                background: 'url(/images/bg/main-bg2.jpg)',
                                 load:1,
                                 callback:newGame
                             });
@@ -105,7 +105,7 @@ Gui.prototype.init = function(){
                                         updateModal({
                                             header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                                             text: 'To rotate view use arrow keys on your keyboard or click left mouse key and drag.',
-                                            background: 'url(/images/bg/main-bg2.jpg) no-repeat center center fixed',
+                                            background: 'url(/images/bg/main-bg2.jpg)',
                                             load:1,
                                             callback:newGame
                                         });
