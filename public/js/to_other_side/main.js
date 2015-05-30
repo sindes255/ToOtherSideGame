@@ -129,6 +129,7 @@ if(window.outerWidth > 1024 && !document.all) {
                                     var surrArr = $('#new-game__settings').serializeArray();
                                     game.stats.players.whitePlayer.AI = surrArr[0].value;
                                     game.stats.players.blackPlayer.AI = surrArr[1].value;
+
                                     updateModal({
                                         header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                                         text: 'To rotate view use arrow keys on your keyboard or click left key and drag.',
@@ -199,7 +200,9 @@ if(window.outerWidth > 1024 && !document.all) {
         gui.init();
         game.init();
         events.init();
-        ai.init();
+        if(game.stats.players.whitePlayer.AI || game.stats.players.blackPlayer.AI) {
+            ai.init();
+        }
 
         webGlOutput = window.webGlOutput = $("#WebGL-output");
         webGlOutput.append(game.renderer.domElement);
@@ -515,8 +518,7 @@ if(window.outerWidth > 1024 && !document.all) {
                     if (i == game.triggers[trigger].animationArray.length - 1 && progress == 1) game.triggers[trigger].animationArray = [];
                 }
             }
-
-            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95) {
+            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95 && game.stats.players[ game.stats.currentPlayer + 'Player'].AI == '0') {
                 game.triggers.camera.switch = 1;
             }
         };

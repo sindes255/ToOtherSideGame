@@ -955,7 +955,7 @@ window.aStarSearch = function(){
 
                             if(newCellCoords.y == obj.endRow){
                                 result.canGo = true;
-                                result.finalCoords = newCellCoords;//console.log(newCellCoords);
+                                result.finalCoords = newCellCoords;
                                 closeArray[newCellCoords.y][newCellCoords.x] = newCell(newCellCoords, currentCellCoords);
                             }else if (!openArray[newCellCoords.y][newCellCoords.x].coords &&
                                 !closeArray[newCellCoords.y][newCellCoords.x].coords) {
