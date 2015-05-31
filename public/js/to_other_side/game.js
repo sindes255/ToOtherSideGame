@@ -237,19 +237,38 @@ Game.prototype.getObjectByPosition = function (x,y,z){//x,y,z - coords of positi
 Game.prototype.swichTurn = function (){
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.x = game.camera.position.x;
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.y = game.camera.position.y;
-    game.stats.players[ game.stats.currentPlayer + 'Player'].camera.z = game.camera.position.z;
+        game.stats.players[ game.stats.currentPlayer + 'Player'].camera.z = game.camera.position.z;
+
+
+
     /*=======Change statistic info in game object=======*/
     if(game.stats.currentPlayer == 'white'){
         game.stats.currentPlayer = 'black';
         game.stats.currentPlates = 'secondPayerPlate';
         game.stats.currentModel = 'secondPlayerModel';
         game.stats.players.whitePlayer.turn +=1;
+        if(game.stats.players.whitePlayer.AI == 0 && game.stats.players.blackPlayer.AI == 1) {
+            game.removeEventListeners();
+        }else if(game.stats.players.whitePlayer.AI == 1 && game.stats.players.blackPlayer.AI == 0){
+            game.addEventListeners()
+        }
     }else{
         game.stats.currentPlayer = 'white';
         game.stats.currentPlates = 'firstPayerPlate';
         game.stats.currentModel = 'firstPlayerModel';
         game.stats.players.blackPlayer.turn +=1;
-
+        if(game.stats.players.whitePlayer.AI == 0 && game.stats.players.blackPlayer.AI == 1) {
+            game.addEventListeners()
+        }else if(game.stats.players.whitePlayer.AI == 1 && game.stats.players.blackPlayer.AI == 0){
+            game.removeEventListeners();
+        }
+    }
+    if(game.stats.players[ game.stats.currentPlayer + 'Player'].AI == 1) {
+        ai.doTurn(function(){
+            setTimeout(function(){
+                game.swichTurn();
+            }, 3000)
+        });
     }
 
     gui.update();
@@ -336,7 +355,15 @@ Game.prototype.init = function(){
             startRepeat = Math.round((startRepeat+0.01)*100)/100;
             woodenTextureDark.repeat.set( startRepeat, startRepeat);
 
-            cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90 } );
+            if(j == 0){
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0xffffff });
+            }else if(j == 8){
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0x000000 });
+
+            }else{
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0x7e7e7e });
+            }
+
             cube = new THREE.Mesh(this.cubeGeometry, cubeMaterial);
             cube.rotation.y = (0.5* getRandomInt(1,4)) * Math.PI;
             cube.position.z = -((this.planeGeometry.parameters.height-11) / 2) + 2 + (j * 19);
