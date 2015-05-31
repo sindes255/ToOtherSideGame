@@ -8,12 +8,14 @@ function Ai(){
         }else if(game.stats.players.blackPlayer.AI == "1"){
             this.aiPlayer = 'blackPlayer'
         }
+
+        this.doTurn = function(fn){
+            console.log(this.aiPlayer,game.stats.players.whitePlayer.AI);
+            if(fn) fn.apply();
+        }
     };
 
 
 
-    this.doTurn = function(fn){
-        console.log(this.aiPlayer,game.stats.players.whitePlayer.AI);
-        if(fn) fn.apply();
-    }
+
 }

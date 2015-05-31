@@ -1,5 +1,5 @@
 /*================ Game staic fields ================*/
-function Game(){
+function Game(firstAi,secondAI){
     this.stats = {
         currentPlayer: 'white',
         currentPlates:'firstPayerPlate',
@@ -7,7 +7,7 @@ function Game(){
         players: {
             whitePlayer: {
                 turn: 1,
-                AI: 0,
+                AI: firstAi | 0,
                 fieldArray: [],
                 platesArray:[],
                 coords:{},
@@ -15,7 +15,7 @@ function Game(){
             },
             blackPlayer: {
                 turn: 1,
-                AI: 0,
+                AI: secondAI | 0,
                 fieldArray: [],
                 platesArray:[],
                 coords:{},
@@ -263,6 +263,7 @@ Game.prototype.swichTurn = function (){
             game.removeEventListeners();
         }
     }
+    console.log(game.stats.currentPlayer);
     if(game.stats.players[ game.stats.currentPlayer + 'Player'].AI == 1) {
         ai.doTurn(function(){
             setTimeout(function(){
@@ -564,6 +565,16 @@ Game.prototype.init = function(){
 
                         setTimeout(function () {
                             gui.newTurnContainer.fadeOut();
+                            if(game.stats.players[ game.stats.currentPlayer + 'Player'].AI == 1) {
+                                game.removeEventListeners();
+                                ai.doTurn(function(){
+                                    setTimeout(function(){
+                                        game.swichTurn();
+                                        game.triggers.camera.switch = 1;
+                                        game.addEventListeners();
+                                    }, 3000)
+                                });
+                            }
                         }, 1000);
                     });
                 },5000);
@@ -576,7 +587,7 @@ Game.prototype.init = function(){
     ambientLight = new THREE.AmbientLight(0xffffff);
     this.scene.add(ambientLight);
 
-    PointLight = new THREE.PointLight( 0xffffff );
+    PointLight = new THREE.PointLight( 0xcccccc );
     PointLight.position.set( 0, 600, 400 );
     this.scene.add( PointLight );
     /*=======Add lighting to scene=======*/

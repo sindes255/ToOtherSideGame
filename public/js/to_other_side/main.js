@@ -129,6 +129,7 @@ if(window.outerWidth > 1024 && !document.all) {
                                     var surrArr = $('#new-game__settings').serializeArray();
                                     game.stats.players.whitePlayer.AI = surrArr[0].value;
                                     game.stats.players.blackPlayer.AI = surrArr[1].value;
+                                    console.log(game.stats.players);
                                     updateModal({
                                         header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                                         text: 'To rotate view use arrow keys on your keyboard or click left key and drag.',
@@ -179,27 +180,34 @@ if(window.outerWidth > 1024 && !document.all) {
         var webGlOutput,
             controlses,
             gameRefresh,
+            firstAI,
+            secondAI,
             animationHandler;
 
         GAME_NUMBER += 1;
         gameRefresh = (function () {
             // if game is over delete all objects, and refresh game DOM container  and create new app objects
             if (game.stats && game.stats.gameOver) {
+                firstAI = game.stats.players.whitePlayer.AI;
+                secondAI = game.stats.players.blackPlayer.AI;
+
                 delete  window.gui
                 delete window.game
+
+
                 $("#WebGL-output").html('');
                 $('#newTurnContainer').remove();
                 $('#turnContainer').remove();
                 $('#menuIcon').remove();
                 window.gui = new Gui();
-                window.game = new Game();
+                window.game = new Game(firstAI,secondAI);
             }
         })();
 
         gui.init();
         game.init();
         events.init();
-        ai.init();
+        if(game.stats.players.whitePlayer.AI == "1" || game.stats.players.blackPlayer.AI == "1") ai.init();
 
         webGlOutput = window.webGlOutput = $("#WebGL-output");
         webGlOutput.append(game.renderer.domElement);
@@ -516,7 +524,7 @@ if(window.outerWidth > 1024 && !document.all) {
                 }
             }
 
-            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95) {
+            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95 && (game.stats.players[ game.stats.currentPlayer + 'Player'].AI != '1')) {
                 game.triggers.camera.switch = 1;
             }
         };

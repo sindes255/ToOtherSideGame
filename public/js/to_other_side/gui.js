@@ -103,18 +103,15 @@ Gui.prototype.init = function(){
                                 submit: {
                                     text: 'Start Game!',
                                     callback: function(){
-                                        var surrArr;
-
-                                        surrArr = $('#new-game__settings').serializeArray();
+                                        var surrArr = $('#new-game__settings').serializeArray();
                                         game.stats.players.whitePlayer.AI = surrArr[0].value;
                                         game.stats.players.blackPlayer.AI = surrArr[1].value;
-
                                         updateModal({
                                             header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
-                                            text: 'To rotate view use arrow keys on your keyboard or click left mouse key and drag.',
+                                            text: 'To rotate view use arrow keys on your keyboard or click left key and drag.',
                                             background: 'url(/images/bg/main-bg2.jpg)',
-                                            load:1,
-                                            callback:newGame
+                                            load: 1,
+                                            callback: newGame
                                         });
                                     }
                                 }
