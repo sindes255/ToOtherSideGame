@@ -237,7 +237,7 @@ Game.prototype.getObjectByPosition = function (x,y,z){//x,y,z - coords of positi
 Game.prototype.swichTurn = function (){
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.x = game.camera.position.x;
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.y = game.camera.position.y;
-    game.stats.players[ game.stats.currentPlayer + 'Player'].camera.z = game.camera.position.z;
+        game.stats.players[ game.stats.currentPlayer + 'Player'].camera.z = game.camera.position.z;
 
 
 
@@ -323,10 +323,10 @@ Game.prototype.init = function(){
     planeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureLight, shininess: 50 } );
 
     woodenTextureUltraLight = THREE.ImageUtils.loadTexture( '/images/lightwood.jpg' );
-    woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 50 } );
+    woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 10 } );
 
     woodenTextureUltraDark = THREE.ImageUtils.loadTexture( '/images/darkwood.jpg' );
-    woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 50 } );
+    woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 10 } );
 
     plane = new THREE.Mesh(this.planeGeometry, planeMaterial);
 
@@ -355,7 +355,15 @@ Game.prototype.init = function(){
             startRepeat = Math.round((startRepeat+0.01)*100)/100;
             woodenTextureDark.repeat.set( startRepeat, startRepeat);
 
-            cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90 } );
+            if(j == 0){
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0xffffff });
+            }else if(j == 8){
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0x000000 });
+
+            }else{
+                cubeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureDark, shininess: 90, emissive: 0x7e7e7e });
+            }
+
             cube = new THREE.Mesh(this.cubeGeometry, cubeMaterial);
             cube.rotation.y = (0.5* getRandomInt(1,4)) * Math.PI;
             cube.position.z = -((this.planeGeometry.parameters.height-11) / 2) + 2 + (j * 19);
@@ -439,6 +447,7 @@ Game.prototype.init = function(){
         firstPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         firstPayerPlate.position.y = 15;
         firstPayerPlate.rotation.x = -0.5 * Math.PI;
+        firstPayerPlate.rotation.z = -0.5 * Math.PI;
         firstPayerPlate.castShadow = true;
         firstPayerPlate.receiveShadow = true;
         firstPayerPlate.name = 'firstPayerPlate[' + i + ']';
@@ -454,6 +463,7 @@ Game.prototype.init = function(){
         secondPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         secondPayerPlate.position.y = 15;
         secondPayerPlate.rotation.x = -0.5 * Math.PI;
+        secondPayerPlate.rotation.z = -0.5 * Math.PI;
         secondPayerPlate.castShadow = true;
         secondPayerPlate.receiveShadow = true;
         secondPayerPlate.name = 'secondPayerPlate[' + i + ']';
@@ -567,7 +577,7 @@ Game.prototype.init = function(){
     this.scene.add(ambientLight);
 
     PointLight = new THREE.PointLight( 0xffffff );
-    PointLight.position.set( 0, 60, 400 );
+    PointLight.position.set( 0, 600, 400 );
     this.scene.add( PointLight );
     /*=======Add lighting to scene=======*/
     spotLight = new THREE.SpotLight( 0xffffff );

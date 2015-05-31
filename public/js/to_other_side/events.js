@@ -6,6 +6,8 @@ Events.prototype.init = function() {
         $("#WebGL-output").unbind('mouseup');
         $("#WebGL-output").unbind('mousemove');
         $("#WebGL-output").unbind('mousewheel');
+        $(document).unbind('keydown');
+
     };
 
     /*================ Add all event listeners ================*/
@@ -22,30 +24,14 @@ Events.prototype.init = function() {
         webGlOutput.bind('mousewheel', throttle(function (event) {
             game.onDocumentMouseScroll(event)
         }, EVENT_THROTLLING_THRESHHOLD));
+        $(document).bind('keydown', throttle(function (event) {
+            game.onDocumentKeydown(event)
+        }, EVENT_THROTLLING_THRESHHOLD));
     };
 
     /*================ Function uses to rotate plate ================*/
     game.onDocumentMouseScroll = function (event) {//mouse event object
-        var name;
-        /*=======THis event only for plate rotation=======*/
-        if (game.dragObj.name.indexOf('Plate') != -1 && game.dragObj.dragStart == 1 && (game.scene.getObjectByName('greenOutlinePlaneMesh') || game.scene.getObjectByName('redOutlinePlaneMesh'))) {
-                name = 'greenOutlinePlaneMesh';
-            if (!game.scene.getObjectByName(name)) {
-                name = 'redOutlinePlaneMesh';
-            }
-            game.scene.getObjectByName(name).rotation.y += -0.5 * Math.PI;
-            /*=======Rotate plate by current rotation=======*/
-            if (game.dragObj.plateRotate == 1) {
-                game.dragObj.plateRotate = 0;
-                game.scene.getObjectByName(game.dragObj.name).tmpRotation = 0;
-            } else {
-                game.dragObj.plateRotate = 1;
-                game.scene.getObjectByName(game.dragObj.name).tmpRotation = 1
-            }
-
-            game.dragObj.lastTargetObject = '';
-            game.onDocumentMouseMove(event);
-        }
+        game.doPlateRotate(event);
     };
 
     game.onDocumentMouseUp = function (event) {//mouse event object
@@ -200,6 +186,9 @@ Events.prototype.init = function() {
 
                     game.sprite = new THREE.Mesh(spriteGeometry, spriteOutlineMaterial);
                     intersects[0].object.add(game.sprite);/*=======Add outline mesh to selected element=======*/
+
+                    if( intersects[0].object.name.indexOf('Plate') != -1) gui.rotateContainer.slideDown();
+                    if( intersects[0].object.name.indexOf('Player') != -1) gui.rotateContainer.slideUp();
                 }
 
                 game.dragObj.name = intersects[0].object.name;
@@ -209,6 +198,8 @@ Events.prototype.init = function() {
 
                     if (intersects[0].object.name.indexOf('cube') != -1 && game.dragObj.name.indexOf('Player') != -1 && game.scene.getObjectByName('greenOutlineCubeMesh')) {
                         targetName = 'greenOutlineCubeMesh';
+
+
                         /*=======Start dragging, set postions of dragging elements=======*/
                         game.triggers.player.obj = game.scene.getObjectByName(game.dragObj.name);
                         game.triggers.player.startPosition.z = game.scene.getObjectByName(game.dragObj.name).position.z;
@@ -272,6 +263,8 @@ Events.prototype.init = function() {
 
                     } else if (game.dragObj.name.indexOf('Plate') != -1 && intersects[0].object.name.indexOf('Plate') == -1 && intersects[0].object.name.indexOf('cube') == -1 && game.scene.getObjectByName('greenOutlinePlaneMesh')) {
                         targetName = 'greenOutlinePlaneMesh';
+                        gui.rotateContainer.slideUp();
+                        game.scene.getObjectByName(game.dragObj.name).remove(game.sprite);
                         platesCoordsArr = {
                             '-66.5': 1,
                             '-47.5': 3,
@@ -323,7 +316,7 @@ Events.prototype.init = function() {
 
                         window.checkForAvailable(game.scene.getObjectByName(game.dragObj.name), intersects[0],'plate',rot);
 
-                        game.scene.getObjectByName(game.dragObj.name).remove(game.sprite);
+
                         game.swichTurn();
                         game.dragObj.lastTargetObject = '';
                     }
@@ -344,4 +337,48 @@ Events.prototype.init = function() {
             }
         }
     };
+
+    game.onDocumentKeydown = function(event){
+        switch (event.keyCode){
+            case 32:
+                game.doPlateRotate();
+                break
+        }
+    }
+
+    game.doPlateRotate = function(event){
+        var name;
+        /*=======THis event only for plate rotation=======*/
+        if (game.dragObj.name.indexOf('Plate') != -1 && game.dragObj.dragStart == 1 ) {
+            name = 'greenOutlinePlaneMesh';
+            if (!game.scene.getObjectByName(name)) {
+                name = 'redOutlinePlaneMesh';
+            }
+            if (game.scene.getObjectByName(name)) {game.scene.getObjectByName(name).rotation.y += -0.5 * Math.PI;}
+            /*=======Rotate plate by current rotation=======*/
+            if (game.dragObj.plateRotate == 1) {
+                game.dragObj.plateRotate = 0;
+                game.scene.getObjectByName(game.dragObj.name).tmpRotation = 0;
+            } else {
+                game.dragObj.plateRotate = 1;
+                game.scene.getObjectByName(game.dragObj.name).tmpRotation = 1
+            }
+
+            game.dragObj.lastTargetObject = '';
+
+
+            for(var i = 0 ; i < 10; i++) {
+                if((game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.x > game.geometries.plane.x / 2 ||
+                    game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.x < -(game.geometries.plane.x / 2)) ||
+                    game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.z > game.geometries.plane.y / 2 ||
+                    game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.z < -(game.geometries.plane.y / 2))
+                {
+                    game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').rotation.z += -0.5 * Math.PI;
+                }
+
+
+            }
+            if(event)game.onDocumentMouseMove(event);
+        }
+    }
 };
