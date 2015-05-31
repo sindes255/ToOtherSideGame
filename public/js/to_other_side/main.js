@@ -664,6 +664,7 @@ if(window.outerWidth > 1024 && !document.all) {
 
                                 if (game.triggers.plate.obj.tmpRotation == 1) {
                                     game.triggers.plate.obj.rotation.y = (-0.5 + progress) * Math.PI;
+                                    game.triggers.plate.obj.rotation.x = (-0.5 + progress) * Math.PI;
                                 }
                             }
                         }

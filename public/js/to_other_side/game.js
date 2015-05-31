@@ -323,10 +323,10 @@ Game.prototype.init = function(){
     planeMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureLight, shininess: 50 } );
 
     woodenTextureUltraLight = THREE.ImageUtils.loadTexture( '/images/lightwood.jpg' );
-    woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 50 } );
+    woodenUltraLightMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraLight, shininess: 10 } );
 
     woodenTextureUltraDark = THREE.ImageUtils.loadTexture( '/images/darkwood.jpg' );
-    woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 50 } );
+    woodenUltraDarkMaterial = new THREE.MeshPhongMaterial( { map: woodenTextureUltraDark, shininess: 10 } );
 
     plane = new THREE.Mesh(this.planeGeometry, planeMaterial);
 
@@ -447,6 +447,7 @@ Game.prototype.init = function(){
         firstPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         firstPayerPlate.position.y = 15;
         firstPayerPlate.rotation.x = -0.5 * Math.PI;
+        firstPayerPlate.rotation.z = -0.5 * Math.PI;
         firstPayerPlate.castShadow = true;
         firstPayerPlate.receiveShadow = true;
         firstPayerPlate.name = 'firstPayerPlate[' + i + ']';
@@ -462,6 +463,7 @@ Game.prototype.init = function(){
         secondPayerPlate.position.x = -((this.planeGeometry.parameters.width+8) / 2) + 2 + (i * 19);
         secondPayerPlate.position.y = 15;
         secondPayerPlate.rotation.x = -0.5 * Math.PI;
+        secondPayerPlate.rotation.z = -0.5 * Math.PI;
         secondPayerPlate.castShadow = true;
         secondPayerPlate.receiveShadow = true;
         secondPayerPlate.name = 'secondPayerPlate[' + i + ']';
@@ -575,7 +577,7 @@ Game.prototype.init = function(){
     this.scene.add(ambientLight);
 
     PointLight = new THREE.PointLight( 0xffffff );
-    PointLight.position.set( 0, 60, 400 );
+    PointLight.position.set( 0, 600, 400 );
     this.scene.add( PointLight );
     /*=======Add lighting to scene=======*/
     spotLight = new THREE.SpotLight( 0xffffff );

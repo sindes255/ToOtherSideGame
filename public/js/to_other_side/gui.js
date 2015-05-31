@@ -7,6 +7,7 @@ Gui.prototype.init = function(){
     body =$('body');
     body.prepend(getTemplateByClass('turnContainer'));
     body.prepend(getTemplateByClass('newTurnContainer'));
+    body.prepend(getTemplateByClass('rotateContainer'));
     body.prepend(getTemplateByClass('menuIcon'));
     body.prepend(getTemplateByClass('helpIcon'));
 
@@ -14,6 +15,8 @@ Gui.prototype.init = function(){
     this.turnSpan = this.turnContainer.find('span');
     this.newTurnContainer = $('#newTurnContainer');
     this.newTurnSpan = this.newTurnContainer.find('span');
+    this.rotateContainer = $('#rotateContainer');
+    this.rotateSpan = this.rotateContainer.find('span');
     this.menuIcon = $('#menuIcon');
     this.helpIcon = $('#helpIcon');
 
@@ -34,6 +37,10 @@ Gui.prototype.init = function(){
             });
             $('#helpIcon').addClass('helpIcon_on');
         }
+    });
+
+    this.rotateSpan.on('click', function() {
+        game.doPlateRotate();
     });
 
     this.helpIcon.mouseenter(function() {
