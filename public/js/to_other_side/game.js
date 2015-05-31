@@ -11,6 +11,7 @@ function Game(firstAi,secondAI){
                 fieldArray: [],
                 platesArray:[],
                 coords:{},
+                rotation: 1,
                 camera: {x:120, y:100,z:180}
             },
             blackPlayer: {
@@ -19,6 +20,7 @@ function Game(firstAi,secondAI){
                 fieldArray: [],
                 platesArray:[],
                 coords:{},
+                rotation: 1,
                 camera: {x:120, y:100,z:-180}
             }
         },
@@ -247,6 +249,8 @@ Game.prototype.swichTurn = function (){
         game.stats.currentPlates = 'secondPayerPlate';
         game.stats.currentModel = 'secondPlayerModel';
         game.stats.players.whitePlayer.turn +=1;
+        game.stats.players.whitePlayer.rotation = game.dragObj.plateRotate;
+        game.dragObj.plateRotate = game.stats.players.blackPlayer.rotation;
         if(game.stats.players.whitePlayer.AI == 0 && game.stats.players.blackPlayer.AI == 1) {
             game.removeEventListeners();
         }else if(game.stats.players.whitePlayer.AI == 1 && game.stats.players.blackPlayer.AI == 0){
@@ -257,6 +261,8 @@ Game.prototype.swichTurn = function (){
         game.stats.currentPlates = 'firstPayerPlate';
         game.stats.currentModel = 'firstPlayerModel';
         game.stats.players.blackPlayer.turn +=1;
+        game.stats.players.blackPlayer.rotation = game.dragObj.plateRotate;
+        game.dragObj.plateRotate = game.stats.players.whitePlayer.rotation;
         if(game.stats.players.whitePlayer.AI == 0 && game.stats.players.blackPlayer.AI == 1) {
             game.addEventListeners()
         }else if(game.stats.players.whitePlayer.AI == 1 && game.stats.players.blackPlayer.AI == 0){

@@ -347,6 +347,7 @@ Events.prototype.init = function() {
     }
 
     game.doPlateRotate = function(event){
+        console.log(game.dragObj.plateRotate);
         var name;
         /*=======THis event only for plate rotation=======*/
         if (game.dragObj.name.indexOf('Plate') != -1 && game.dragObj.dragStart == 1 ) {
