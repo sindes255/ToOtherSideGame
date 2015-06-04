@@ -140,7 +140,7 @@ Gui.prototype.init = function(){
                     }, {
                         text: 'Show in GitHub',
                         callback: function () {
-                            document.location.href = '/';
+                            document.location.href = 'https://github.com/sindes255/ToOtherSideGame';
                         }
                     }
                 ]

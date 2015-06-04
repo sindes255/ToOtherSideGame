@@ -816,7 +816,7 @@ window.getTemplateByClass = function(cl){// class of adding template
 
 window.aStarSearch = function(){
     return {
-        showInput: function(obj){
+        findWay: function(obj){
             var closeArray,
                 openArray,
                 playerDirection,

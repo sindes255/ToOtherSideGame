@@ -9,7 +9,7 @@ function Game(firstAi,secondAI){
                 turn: 1,
                 AI: firstAi | 0,
                 fieldArray: [],
-                platesArray:[],
+                platesArray:{},
                 coords:{},
                 rotation: 1,
                 camera: {x:120, y:100,z:180}
@@ -18,7 +18,7 @@ function Game(firstAi,secondAI){
                 turn: 1,
                 AI: secondAI | 0,
                 fieldArray: [],
-                platesArray:[],
+                platesArray:{},
                 coords:{},
                 rotation: 1,
                 camera: {x:120, y:100,z:-180}
@@ -235,6 +235,24 @@ Game.prototype.getObjectByPosition = function (x,y,z){//x,y,z - coords of positi
     return intersects
 };
 
+Game.prototype.getPositionByCoords = function (x,y) {//x,y - coords of position on table(no THREE scene)
+    var result = {};
+    function doCicle(d){
+        for(var i = -76, j = 0; j != d; j++){
+            i = i + 9.5;
+        }
+
+        return i
+    }
+    result.x = doCicle(x);
+    result.y = 4.5;
+    result.z = doCicle(y);
+
+    //return x, y, z position
+    return result
+};
+
+
 /*================ Update some field after and turn ================*/
 Game.prototype.swichTurn = function (){
     game.stats.players[ game.stats.currentPlayer + 'Player'].camera.x = game.camera.position.x;
@@ -269,16 +287,160 @@ Game.prototype.swichTurn = function (){
             game.removeEventListeners();
         }
     }
-    console.log(game.stats.currentPlayer);
+
     if(game.stats.players[ game.stats.currentPlayer + 'Player'].AI == 1) {
         ai.doTurn(function(){
-            setTimeout(function(){
-                game.swichTurn();
-            }, 3000)
+            game.swichTurn();
         });
     }
 
     gui.update();
+};
+
+Game.prototype.goTo = function(x, y, rotation){
+    var objectName,
+        startCoords={},
+        startPosition ={},
+        finishCoords ={},
+        finishPosition={};
+
+    var gameOver = game.stats.gameOver;
+
+    if(rotation || rotation == 0){
+        for(var key in game.stats.players[ game.stats.currentPlayer + 'Player'].platesArray){
+            objectName =  key;
+            break
+        }
+
+    }else{
+        objectName = game.stats.currentModel;
+    }
+
+    game.dragObj.name = objectName;
+    game.dragObj.dragStart = 1;
+
+    startCoords =  game.stats.players[ game.stats.currentPlayer + 'Player'].coords;
+
+    startPosition.z = game.scene.getObjectByName(objectName).position.z;
+    startPosition.x = game.scene.getObjectByName(objectName).position.x;
+    startPosition.y = game.scene.getObjectByName(objectName).position.y;
+
+    finishCoords.x = x;
+    finishCoords.y = y;
+
+    finishPosition = game.getPositionByCoords(finishCoords.x, finishCoords.y);
+
+    if (!rotation && rotation != 0) {
+
+
+        /*=======Start dragging, set postions of dragging elements=======*/
+        game.triggers.player.obj = game.scene.getObjectByName(objectName);
+        game.triggers.player.startPosition.z = startPosition.z;
+        game.triggers.player.targetPosition.z = finishPosition.z;
+        game.triggers.player.startPosition.x = startPosition.x;
+        game.triggers.player.targetPosition.x = finishPosition.x;
+        game.triggers.player.startPosition.y = startPosition.y;
+        game.triggers.player.targetPosition.y = finishPosition.y + 9;
+        game.triggers.player.switch = 1;
+
+        if (startCoords.y || startCoords.y == 0) {
+            game.stats.players.whitePlayer.fieldArray[startCoords.y][startCoords.x].filling = '';
+            game.stats.players.blackPlayer.fieldArray[startCoords.y][startCoords.x].filling = '';
+        }
+        window.checkForAvailable(startCoords, finishCoords,'player');
+        game.stats.players[game.stats.currentPlayer + 'Player'].coords = {
+            y: finishCoords.y,
+            x: finishCoords.x
+        };
+
+        game.stats.players.whitePlayer.fieldArray[finishCoords.y][finishCoords.x].filling = game.dragObj.name;
+        game.stats.players.blackPlayer.fieldArray[finishCoords.y][finishCoords.x].filling = game.dragObj.name;
+
+
+
+
+        /*=======If target table cell is in last row of current player, this player WIN GAME=======*/
+        if ((finishCoords.y == 0 && game.stats.currentPlayer == 'white') ||
+            (finishCoords.y == 16 && game.stats.currentPlayer == 'black')) {
+            setTimeout(function () {
+                game.stats.gameOver = 1;
+                game.removeEventListeners();
+
+                var player = game.stats.currentPlayer.substr(0, 1).toUpperCase() + game.stats.currentPlayer.substr(1);
+                $('#menuIcon').css({zIndex:'0'});
+
+                showModal({
+                    header: player + '  player WIN',
+                    text: "This game was created by Babkov Ivan. I'm russian javascript deweloper. If you like this game and have job offers, fork me on GitHub or mail me to <a href='mailto:sindes255@gamil.com'>sindes255@gamil.com</a>.<br><br>",
+                    retry: 1,
+                    location: {
+                        text: 'Show in GitHub',
+                        url: 'https://github.com/sindes255/ToOtherSideGame'
+                    },
+                    buttons:[{
+                        text: 'Main menu',
+                        callback: function (event) {
+                            var ev = event;
+
+                            updateModal(menuObj);
+                        }
+                    }]
+                });
+            }, 1000);
+        }
+    } else if (rotation || rotation == 0) {
+        var _y,_x;
+        var rot = rotation;
+        _y = finishCoords.y;
+        _x = finishCoords.x;
+        if(game.scene.getObjectByName(objectName).tmpRotation != rotation)game.doPlateRotate();
+
+        for (var f = 0; f < 3; f++) {
+            if (game.scene.getObjectByName(game.dragObj.name).coords[0].y) {
+                game.stats.players.whitePlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = '';
+                game.stats.players.blackPlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = '';
+            }
+        }
+        /*=======Set coords of plate from rotation of this plate=======*/
+
+        if (rot) {
+            game.scene.getObjectByName(game.dragObj.name).coords[0] = {y: _y, x: _x - 1};
+            game.scene.getObjectByName(game.dragObj.name).coords[1] = {y: _y, x: _x};
+            game.scene.getObjectByName(game.dragObj.name).coords[2] = {y: _y, x: _x + 1};
+        } else {
+            game.scene.getObjectByName(game.dragObj.name).coords[0] = {y: _y - 1, x: _x};
+            game.scene.getObjectByName(game.dragObj.name).coords[1] = {y: _y, x: _x};
+            game.scene.getObjectByName(game.dragObj.name).coords[2] = {y: _y + 1, x: _x};
+
+        }
+        for (var f = 0; f < 3; f++) {
+            game.stats.players.whitePlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = game.dragObj.name;
+            game.stats.players.blackPlayer.fieldArray[game.scene.getObjectByName(game.dragObj.name).coords[f].y][game.scene.getObjectByName(game.dragObj.name).coords[f].x].filling = game.dragObj.name;
+
+        }
+
+        /*=======Set poisitions of current plate=======*/
+        game.triggers.plate.obj = game.scene.getObjectByName(game.dragObj.name);
+        game.triggers.plate.startPosition.z = startPosition.z;
+        game.triggers.plate.targetPosition.z = finishPosition.z;
+        game.triggers.plate.startPosition.x = startPosition.x;
+        game.triggers.plate.targetPosition.x = finishPosition.x;
+        game.triggers.plate.startPosition.y = startPosition.y;
+        game.triggers.plate.targetPosition.y = finishPosition.y + 5;
+        game.triggers.plate.switch = 1;
+
+
+        delete game.stats.players[game.stats.currentPlayer + 'Player'].platesArray[game.dragObj.name]
+        window.checkForAvailable(startCoords, finishCoords,'plate',rot);
+    }
+
+    game.dragObj.name = '';
+    game.dragObj.dragStart = 0;
+    if (gameOver != 0) {
+        setTimeout(function () {
+            game.stats.gameOver = 1 // stop game, because game is over
+        }, 100);
+    }
 };
 
 Game.prototype.init = function(){
@@ -398,6 +560,12 @@ Game.prototype.init = function(){
                     this.stats.players.blackPlayer.fieldArray[k].push(
                         {type: 'plateCrossing', coords: {x: l, y: k}, filling: '', available: true}
                     );
+                    if(this.stats.players.blackPlayer.AI == '1'){
+                        this.stats.players.blackPlayer.fieldArray[k][this.stats.players.blackPlayer.fieldArray[k].length - 1].F = 0
+                    }
+                    if(this.stats.players.whitePlayer.AI == '1'){
+                        this.stats.players.whitePlayer.fieldArray[k][this.stats.players.whitePlayer.fieldArray[k].length - 1].F = 0
+                    }
                 } else if (j != 17) {
                     this.stats.players.whitePlayer.fieldArray[k].push(
                         {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
@@ -406,6 +574,8 @@ Game.prototype.init = function(){
                         {type: 'plate', coords: {x: l, y: k}, filling: '', available: true}
                     );
                 }
+
+
             }else if (k != 17){
                 if (l % 2 == 1 && l != 17) {
 
@@ -438,10 +608,17 @@ Game.prototype.init = function(){
                             {type: 'cube', coords: {x: l, y: k}, filling: '', available: false}
                         );
                     }
+                    if(this.stats.players.blackPlayer.AI == '1'){
+                        this.stats.players.blackPlayer.fieldArray[k][this.stats.players.blackPlayer.fieldArray[k].length - 1].F = 0
+                    }
+                    if(this.stats.players.whitePlayer.AI == '1'){
+                        this.stats.players.whitePlayer.fieldArray[k][this.stats.players.whitePlayer.fieldArray[k].length - 1].F = 0
+                    }
                 }
             }
         }
     }
+
 
     /*================ Init plates ================*/
     this.PayerPlateGeometry = new THREE.BoxGeometry(this.geometries.plates.x, this.geometries.plates.y, this.geometries.plates.z);
@@ -458,6 +635,7 @@ Game.prototype.init = function(){
         firstPayerPlate.castShadow = true;
         firstPayerPlate.receiveShadow = true;
         firstPayerPlate.name = 'firstPayerPlate[' + i + ']';
+        game.stats.players.whitePlayer.platesArray[firstPayerPlate.name] = {name:firstPayerPlate.name};
         firstPayerPlate.coords = [{},{},{}];
         firstPayerPlate.count = i;
         firstPayerPlate.tmpRotation = game.dragObj.plateRotate;
@@ -474,6 +652,7 @@ Game.prototype.init = function(){
         secondPayerPlate.castShadow = true;
         secondPayerPlate.receiveShadow = true;
         secondPayerPlate.name = 'secondPayerPlate[' + i + ']';
+        game.stats.players.blackPlayer.platesArray[secondPayerPlate.name] = {name: secondPayerPlate.name};
         secondPayerPlate.coords = [{},{},{}];
         secondPayerPlate.count = i;
         secondPayerPlate.tmpRotation = game.dragObj.plateRotate;
@@ -575,9 +754,9 @@ Game.prototype.init = function(){
                                 game.removeEventListeners();
                                 ai.doTurn(function(){
                                     setTimeout(function(){
-                                        game.swichTurn();
                                         game.triggers.camera.switch = 1;
                                         game.addEventListeners();
+                                        game.swichTurn();
                                     }, 3000)
                                 });
                             }

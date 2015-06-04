@@ -242,7 +242,7 @@ Events.prototype.init = function() {
                                     retry: 1,
                                     location: {
                                         text: 'Show in GitHub',
-                                        url: '/'
+                                        url: 'https://github.com/sindes255/ToOtherSideGame'
                                     },
                                     buttons:[{
                                         text: 'Main menu',
@@ -265,20 +265,11 @@ Events.prototype.init = function() {
                         targetName = 'greenOutlinePlaneMesh';
                         gui.rotateContainer.slideUp();
                         game.scene.getObjectByName(game.dragObj.name).remove(game.sprite);
-                        platesCoordsArr = {
-                            '-66.5': 1,
-                            '-47.5': 3,
-                            '-28.5': 5,
-                            '-9.5': 7,
-                            '9.5': 9,
-                            '28.5': 11,
-                            '47.5': 13,
-                            '66.5': 15
-                        };
+
 
                         var rot = game.scene.getObjectByName(game.dragObj.name).tmpRotation;
-                        _y = platesCoordsArr[game.scene.getObjectByName(targetName).position.z];
-                        _x = platesCoordsArr[game.scene.getObjectByName(targetName).position.x];
+                        _y = game.platesCoordsArr[game.scene.getObjectByName(targetName).position.z];
+                        _x = game.platesCoordsArr[game.scene.getObjectByName(targetName).position.x];
 
                         for (var f = 0; f < 3; f++) {
                             if (game.scene.getObjectByName(game.dragObj.name).coords[0].y) {
@@ -314,6 +305,9 @@ Events.prototype.init = function() {
                         game.triggers.plate.targetPosition.y = game.scene.getObjectByName(targetName).position.y;
                         game.triggers.plate.switch = 1;
 
+
+                        delete game.stats.players[game.stats.currentPlayer + 'Player'].platesArray[game.dragObj.name]
+
                         window.checkForAvailable(game.scene.getObjectByName(game.dragObj.name), intersects[0],'plate',rot);
 
 
@@ -330,7 +324,7 @@ Events.prototype.init = function() {
 
                     if (gameOver != 0) {
                         setTimeout(function () {
-                            game.stats.gameOver = 1// stop game? because game is over
+                            game.stats.gameOver = 1// stop game, because game is over
                         }, 100);
                     }
                 }
@@ -347,7 +341,6 @@ Events.prototype.init = function() {
     }
 
     game.doPlateRotate = function(event){
-        console.log(game.dragObj.plateRotate);
         var name;
         /*=======THis event only for plate rotation=======*/
         if (game.dragObj.name.indexOf('Plate') != -1 && game.dragObj.dragStart == 1 ) {
@@ -364,17 +357,22 @@ Events.prototype.init = function() {
                 game.dragObj.plateRotate = 1;
                 game.scene.getObjectByName(game.dragObj.name).tmpRotation = 1
             }
-
+            if(game.stats.players[game.stats.currentPlayer + 'Player'].rotation == 1){
+                game.stats.players[game.stats.currentPlayer + 'Player'].rotation = 0
+            }else{
+                game.stats.players[game.stats.currentPlayer + 'Player'].rotation = 1
+            }
             game.dragObj.lastTargetObject = '';
 
 
-            for(var i = 0 ; i < 10; i++) {
+            for(var i = 0 ; i < 10; i++) {//mark all rotation of plates on there obj
                 if((game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.x > game.geometries.plane.x / 2 ||
                     game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.x < -(game.geometries.plane.x / 2)) ||
                     game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.z > game.geometries.plane.y / 2 ||
                     game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').position.z < -(game.geometries.plane.y / 2))
                 {
                     game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').rotation.z += -0.5 * Math.PI;
+                    game.scene.getObjectByName(game.stats.currentPlates + '[' + i + ']').tmpRotation = game.stats.players[game.stats.currentPlayer + 'Player'].rotation;
                 }
 
 

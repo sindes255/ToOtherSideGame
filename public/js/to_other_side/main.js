@@ -2,33 +2,33 @@ var GAME_NUMBER = 0,
     EVENT_THROTLLING_THRESHHOLD = 100;
 
 /*
-    PURPOSE OF THE GAME
-To be the first to reach the line opposite to one's base line.
+ PURPOSE OF THE GAME
+ To be the first to reach the line opposite to one's base line.
 
-When the game starts the fences are placed in their storage area (10 for each player).
-Each player places his pawn in the centre of his base line.
-White player starts first.
+ When the game starts the fences are placed in their storage area (10 for each player).
+ Each player places his pawn in the centre of his base line.
+ White player starts first.
 
-    How To Play The Game To other side:
-Each player in turn, chooses to move his pawn or to put up one of his fences.
-When he has run out of fences, the player must move his pawn.
+ How To Play The Game To other side:
+ Each player in turn, chooses to move his pawn or to put up one of his fences.
+ When he has run out of fences, the player must move his pawn.
 
-    Pawn moves
-The pawns are moved one square at a time, horizontally or vertically, forwards or backwards.
-The pawns must get around the fences.
+ Pawn moves
+ The pawns are moved one square at a time, horizontally or vertically, forwards or backwards.
+ The pawns must get around the fences.
 
-    Positioning of the fences
-The fences must be placed between 2 sets of 2 squares.
-The fences can be used to facilitate the player’s progress or to impede that of the opponent, however, an access to the goal line must always be left open.
+ Positioning of the fences
+ The fences must be placed between 2 sets of 2 squares.
+ The fences can be used to facilitate the player’s progress or to impede that of the opponent, however, an access to the goal line must always be left open.
 
-    Face to face
-When two pawns face each other on neighboring squares which are not separated
-by a fence, the player whose turn it is can jump the opponent’s pawn
-(and place himself behind him), thus advancing an extra square. If there is a fence behind the said pawn, the player can place his pawn to the left or the right of the other pawn.
+ Face to face
+ When two pawns face each other on neighboring squares which are not separated
+ by a fence, the player whose turn it is can jump the opponent’s pawn
+ (and place himself behind him), thus advancing an extra square. If there is a fence behind the said pawn, the player can place his pawn to the left or the right of the other pawn.
 
-    END OF GAME
-The first player who reaches one of the 9 squares opposite his base line is the winner.
-*/
+ END OF GAME
+ The first player who reaches one of the 9 squares opposite his base line is the winner.
+ */
 
 if(window.outerWidth > 1024 && !document.all) {
     window.gui = new Gui();
@@ -129,7 +129,6 @@ if(window.outerWidth > 1024 && !document.all) {
                                     var surrArr = $('#new-game__settings').serializeArray();
                                     game.stats.players.whitePlayer.AI = surrArr[0].value;
                                     game.stats.players.blackPlayer.AI = surrArr[1].value;
-                                    console.log(game.stats.players);
                                     updateModal({
                                         header: '<img class="logo-img" src="/images/icon128.png" width="58"/>To other side',
                                         text: 'To rotate view use arrow keys on your keyboard or click left key and drag.',
@@ -165,13 +164,13 @@ if(window.outerWidth > 1024 && !document.all) {
                 }, {
                     text: 'Show in GitHub',
                     callback: function () {
-                        document.location.href = '/';
+                        document.location.href = 'https://github.com/sindes255/ToOtherSideGame';
                     }
                 }
             ]
         };
 
-        //initMusic('http://174.36.206.197:8000/;stream.nsv');
+        initMusic('http://174.36.206.197:8000/;stream.nsv');
         showModal(menuObj);
     });
 
@@ -214,7 +213,7 @@ if(window.outerWidth > 1024 && !document.all) {
         controlses = new THREE.OrbitControls(game.camera, game.renderer.domElement);
 
         /*================ Check for available cell that choose================*/
-        window.canPut = function (el, el2) {//el-moving element, el2 -target element
+        window.canPut = function (el, el2) {//el-moving element, el2 -target element or el - target coords, el2 - rotation of plate
             var draggingElem,
                 targetElem,
                 canPut,
@@ -227,29 +226,52 @@ if(window.outerWidth > 1024 && !document.all) {
                 startRow,
                 endRow,
                 player;
-
-            draggingElem = el;
-            targetElem = el2;
             canPut = true;
+            targetCoords = {
+                x: 0,
+                y: 0
+            };
+            if(el2) {
+                draggingElem = el;
+                targetElem = el2;
+            }else {
+                draggingElem = {};
+                draggingElem.name = el.name;
+                if(el.rotation || el.rotation == 0)draggingElem.tmpRotation = el.rotation;
+
+                targetElem = {
+                    object: {
+                        coords: {
+                            x: el.x,
+                            y: el.y
+                        }
+                    }
+                };
+
+
+
+            };
 
             if (draggingElem.name.indexOf('Player') != -1) {//if moving element is Player  model
                 targetCoords = targetElem.object.coords;
                 canPut = game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y][targetCoords.x].available;
-            }else if (draggingElem.name.indexOf('Plate') != -1) {//if moving element is Plate  model
-                plateCoords = {//multiple of target point and 19, find center of target cell
-                    x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
-                    y: targetElem.point.y + 9,
-                    z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
-                };
+            }else if (draggingElem.name.indexOf('Plate') != -1 || draggingElem.name.indexOf('plateCrossing') != -1) {//if moving element is Plate  model
+                if(el2) {
 
-                targetCoords = {
-                    x:0,
-                    y:0
-                };
+                    plateCoords = {//multiple of target point and 19, find center of target cell
+                        x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
+                        y: targetElem.point.y + 9,
+                        z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
+                    };
 
-                targetCoords.y = game.platesCoordsArr[plateCoords.z];
-                targetCoords.x = game.platesCoordsArr[plateCoords.x];
 
+
+                    targetCoords.y = game.platesCoordsArr[plateCoords.z];
+                    targetCoords.x = game.platesCoordsArr[plateCoords.x];
+                }else{
+                    targetCoords.y = el.y;
+                    targetCoords.x = el.x;
+                }
                 /*Check near cells for available*/
                 if(draggingElem.tmpRotation == 0) {
                     for(var i = -1; i < 2 ; i++) {
@@ -276,16 +298,20 @@ if(window.outerWidth > 1024 && !document.all) {
                         anotherPlayer = player =game.scene.getObjectByName('secondPlayerModel');
                         startRow = 0;
                         endRow = 16;
+
                     }else{
                         anotherPlayerName = 'white';
                         anotherPlayer = player =game.scene.getObjectByName('firstPlayerModel');
                         endRow = 0
                         startRow = 16;
                     }
-
+                    var currentStartRow = endRow;
+                    var currentEndRow = startRow;
+                    var currentPlayerCoords = game.stats.players[game.stats.currentPlayer + 'Player'].coords;
                     anotherPlayerCoords = game.stats.players[anotherPlayerName + 'Player'].coords;
 
                     isDraggingElemInGame=true;
+                    var isCurrentDraggingElemInGame=false;
 
                     if((player.position.x > game.geometries.plane.x / 2 ||
                         player.position.x < -(game.geometries.plane.x / 2)) ||
@@ -293,8 +319,13 @@ if(window.outerWidth > 1024 && !document.all) {
                         player.position.z < -(game.geometries.plane.y / 2))) {
                         isDraggingElemInGame = false
                     }
+                    if(currentPlayerCoords.y || currentPlayerCoords.y == 0){
+                        isCurrentDraggingElemInGame=true;
+                    }
 
                     var startCoords = {x: 0, y:0};
+                    var currentStartCoords = {x: 0, y:0};
+
                     if(!isDraggingElemInGame){
                         startCoords.x = 0;
                         startCoords.y = startRow;
@@ -303,7 +334,15 @@ if(window.outerWidth > 1024 && !document.all) {
                         startCoords.y = anotherPlayerCoords.y;
                     }
 
-                    canPut = aStarSearch.showInput({/*use A* searching way algoithm*/
+                    if(!isCurrentDraggingElemInGame){
+                        currentStartCoords.x = 0;
+                        currentStartCoords.y = currentStartRow;
+                    }else{
+                        currentStartCoords.x = currentPlayerCoords.x;
+                        currentStartCoords.y = currentPlayerCoords.y;
+                    }
+
+                    canPut = aStarSearch.findWay({/*use A* searching way algoithm*/
                         startCoords:  startCoords,
                         endRow:  endRow,
                         plate: {
@@ -311,6 +350,17 @@ if(window.outerWidth > 1024 && !document.all) {
                             rotate: draggingElem.tmpRotation
                         }
                     }).canGo;
+
+                    if(canPut){
+                        canPut = aStarSearch.findWay({/*use A* searching way algoithm*/
+                            startCoords:  currentStartCoords,
+                            endRow:  currentEndRow,
+                            plate: {
+                                coords: targetCoords,
+                                rotate: draggingElem.tmpRotation
+                            }
+                        }).canGo;
+                    }
                 }
             }
             // Can moving element puts to target element
@@ -319,10 +369,10 @@ if(window.outerWidth > 1024 && !document.all) {
 
         /*================ Function that mark available or unavailable after turn is over ================*/
         window.checkForAvailable= function (el, el2,type, rot) {
-        // el-moving element,
-        // el2 -target element,
-        // type - type of moving element,
-        // rot - rotation of moving element
+            // el-moving element or start coords,
+            // el2 -target element or finish coords,
+            // type - type of moving element,
+            // rot - rotation of moving element
 
             var draggingElem,
                 targetElem,
@@ -345,7 +395,12 @@ if(window.outerWidth > 1024 && !document.all) {
             /*=======If dragging element on table game is start for player=======*/
 
             if (type == 'player') {
-                targetCoords = targetElem.object.coords;
+                if(targetElem.object){
+                    targetCoords = targetElem.object.coords;
+                }else{
+                    targetCoords = targetElem;
+                }
+
                 playerCoords = game.stats.players[game.stats.currentPlayer + 'Player'].coords;
 
                 /*If its first player model moving - mark all first row not available fo moving*/
@@ -400,61 +455,67 @@ if(window.outerWidth > 1024 && !document.all) {
 
 
             }else if(type="plate"){
-                plateCoords = {
-                    x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
-                    y: targetElem.point.y + 9,
-                    z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
-                };
+                if(targetElem.point) {
+                    plateCoords = {
+                        x: (Math.floor(targetElem.point.x / 19) * 19) + 9.5,
+                        y: targetElem.point.y + 9,
+                        z: (Math.floor(targetElem.point.z / 19) * 19) + 9.5
+                    };
 
-                targetCoords = {
-                    x:0,
-                    y:0
-                };
+                    targetCoords = {
+                        x: 0,
+                        y: 0
+                    };
+
+
+
+
+                    targetCoords.y = game.platesCoordsArr[plateCoords.z];
+                    targetCoords.x = game.platesCoordsArr[plateCoords.x];
+                }else{
+                    targetCoords = targetElem;
+                }
 
                 directionArr = [
                     [
-                        {x: +1,y: +1,_x: -1, _y: +1},
-                        {x: -1,y: +1,_x: +1, _y: +1},
-                        {x: +1,y: -1,_x: -1, _y: -1},
-                        {x: -1,y: -1,_x: +1, _y: -1}
+                        {x: +1, y: +1, _x: -1, _y: +1},
+                        {x: -1, y: +1, _x: +1, _y: +1},
+                        {x: +1, y: -1, _x: -1, _y: -1},
+                        {x: -1, y: -1, _x: +1, _y: -1}
                     ],
                     [
-                        {y: +1,x: +1,_y: -1, _x: +1},
-                        {y: -1,x: +1,_y: +1, _x: +1},
-                        {y: +1,x: -1,_y: -1, _x: -1},
-                        {y: -1,x: -1,_y: +1, _x: -1}
+                        {y: +1, x: +1, _y: -1, _x: +1},
+                        {y: -1, x: +1, _y: +1, _x: +1},
+                        {y: +1, x: -1, _y: -1, _x: -1},
+                        {y: -1, x: -1, _y: +1, _x: -1}
                     ]
                 ];
 
-
-            targetCoords.y = game.platesCoordsArr[plateCoords.z];
-            targetCoords.x = game.platesCoordsArr[plateCoords.x];
-
-            if(rot == 0) {
-                for(var i = -1; i < 2 ; i++) {
-                    game.stats.players.whitePlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
-                    game.stats.players.blackPlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
-                }
-
-            }else if(rot == 1) {
-                for(var i = -1; i < 2 ; i++) {
-                    game.stats.players.whitePlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
-                    game.stats.players.blackPlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
-                }
-            }
-            for(var j in directionArr[rot]){
-                if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling != ''){
-                    var thisColor;
-                    if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling == 'firstPlayerModel'){
-                        thisColor = 'white'
-                    }else{
-                        thisColor = 'black'
+                if(rot == 0) {
+                    for(var i = -1; i < 2 ; i++) {
+                        game.stats.players.whitePlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
+                        game.stats.players.blackPlayer.fieldArray[targetCoords.y + i][targetCoords.x].available = false;
                     }
-                    game.stats.players[thisColor + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j]._y][targetCoords.x + directionArr[rot][j]._x].available = false;
+
+                }else if(rot == 1) {
+                    for(var i = -1; i < 2 ; i++) {
+                        game.stats.players.whitePlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
+                        game.stats.players.blackPlayer.fieldArray[targetCoords.y][targetCoords.x + i].available = false;
+                    }
+                }
+                for(var j in directionArr[rot]){
+                    if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling != ''){
+                        var thisColor;
+                        if(game.stats.players[game.stats.currentPlayer + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j].y][targetCoords.x + directionArr[rot][j].x].filling == 'firstPlayerModel'){
+                            thisColor = 'white'
+                        }else{
+                            thisColor = 'black'
+                        }
+                        game.stats.players[thisColor + 'Player'].fieldArray[targetCoords.y + directionArr[rot][j]._y][targetCoords.x + directionArr[rot][j]._x].available = false;
+                    }
                 }
             }
-        }
-};
+        };
 
         /*================ Function that playing when triggers on and anmate camera, player  or plate ================*/
         animationHandler = function (trigger, optionsObj) {// trigger - name of animation object; optionsObj - options
@@ -524,7 +585,7 @@ if(window.outerWidth > 1024 && !document.all) {
                 }
             }
 
-            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95 && (game.stats.players[ game.stats.currentPlayer + 'Player'].AI != '1')) {
+            if ((trigger == 'player' || trigger == 'plate') && progress >= 0.95 && (game.stats.players.whitePlayer.AI != '1' && game.stats.players.blackPlayer.AI != '1')) {
                 game.triggers.camera.switch = 1;
             }
         };
